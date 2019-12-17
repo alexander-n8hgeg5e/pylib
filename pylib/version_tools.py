@@ -49,31 +49,36 @@ def gh2ver(hashstr,length):
     dec_hash=str(int(hashstr,base=16))
     return prefix_decimal+"."+dec_hash
 
-def ver2gh(verstr,length):
+def ver2gh(verstr,length=None,no_fail_length=True):
     """
     Reverse gh2ver.
     Can only restore hex characters up until 
     length, the parameter value that
     was used during encoding.
     """
+    if length is None:
+        length=1
     prefix_need=str(str2int("gh"+str(length)))
     prefix_is,intstr=verstr.split(".")
     if prefix_need != prefix_is:
-        raise Exception('ERROR: "gh'+str(length)+'" formated version numbers start with "'+prefix_need+'", .\n'
-                        'The supplied one is : "'+prefix_is+'".\n'
-                        'The first part is the usually utf8 encoded string:\n\n'
-                        '                  "ghXX", encoded as interger.\n\n'
-                        'where XX i a number, (regex: "^gh[1-9][0-9]*$"),\n'
-                        'That means like a binary, just with decimal.\n'
-                        'Example: "101" -> "5"\n'
-                        'The second part from a hex number so no utf-8 encoding is needed.\n'
-                        'It is just an interger from the hexdata.\n'
-                        'Example: "A3" -> 163 , FF -> 255\n'
-                        'Combined, they look like this,:\n\n'
-                        '         "'+gh2ver('0123456789abcdef',16)+'"\n\n'
-                        'source git-hash: "0123456789abcdef"\n\n'
-                        'length parameter: 16\n'
-                        )
+        if not no_fail_length:
+            raise Exception('ERROR: "gh'+str(length)+'" formated version numbers start with "'+prefix_need+'", .\n'
+                            'The supplied one is : "'+prefix_is+'".\n'
+                            'The first part is the usually utf8 encoded string:\n\n'
+                            '                  "ghXX", encoded as interger.\n\n'
+                            'where XX i a number, (regex: "^gh[1-9][0-9]*$"),\n'
+                            'That means like a binary, just with decimal.\n'
+                            'Example: "101" -> "5"\n'
+                            'The second part from a hex number so no utf-8 encoding is needed.\n'
+                            'It is just an interger from the hexdata.\n'
+                            'Example: "A3" -> 163 , FF -> 255\n'
+                            'Combined, they look like this,:\n\n'
+                            '         "'+gh2ver('0123456789abcdef',16)+'"\n\n'
+                            'source git-hash: "0123456789abcdef"\n\n'
+                            'length parameter: 16\n'
+                            )
+        else:
+            return ver2gh(verstr,length=length+1,no_fail_length=no_fail_length)
 
     return hex(int(intstr))[2:]
 
