@@ -5,6 +5,8 @@ from pylib.du import dd
 from types import FunctionType
 from os.path import sep as psep
 
+debug=False
+
 class Cmdrunner():
     def __init__(self,cmds,*z,**zz):
         self.cmds=cmds
@@ -62,6 +64,8 @@ class ConditionRunner():
             # is running, not done
             startit=True
             for check in self.conditions:
+                if debug:
+                    print("check...")
                 if check():
                     self.p.send_signal(SIGSTOP)
                     self.state=self.STOPPED
@@ -96,7 +100,12 @@ def get_iowait():
 
 def gen_max_iowait_checker(max_factor):
     def max_iowait_checker():
-        if get_iowait() <= max_factor:
+        if debug:
+            print("iowait checker is checking iowait...",end="")
+        iowait=get_iowait()
+        if debug:
+            print("val="+str(iowait))
+        if iowait <= max_factor:
                 return False
         else:
                 return True
