@@ -39,9 +39,9 @@ class Cmdrunner():
         args+=self.z
         return cmd,args,kwargs
 
-class Loadrunner():
+class ConditionRunner():
     """
-    Loadrunner runs the cmd and stops it one of the supplied condition
+    ConditionRunner runs the cmd and stops it one of the supplied condition
     check functions returns True.
     """
     STARTED=0
