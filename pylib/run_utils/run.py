@@ -56,7 +56,7 @@ class ConditionRunner():
         self.polltime=polltime
         self.state=None
     def run(self):
-        cmd=['nice',"-n"+str(self.niceness,'ionice',self.ioprio]+self.cmd
+        cmd=['nice',"-n"+str(self.niceness),'ionice',"-"+self.ioprio]+self.cmd
         self.p=Popen(cmd,*self.popenargs,**self.popenkwargs)
         while self.p.poll() is None:
             # is running, not done
