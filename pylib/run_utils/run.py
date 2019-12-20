@@ -101,3 +101,4 @@ def gen_max_iowait_checker(max_factor):
                 return True
     return max_iowait_checker
 
+# vim: set foldlevel=0 foldmethod=indent :
