@@ -1,6 +1,9 @@
-from subprocess import check_call
+from subprocess import Popen
+from signal import SIGCONT,SIGSTOP
+from time import sleep
 from pylib.du import dd
 from types import FunctionType
+from os.path import sep as psep
 
 class Cmdrunner():
     def __init__(self,cmds,*z,**zz):
@@ -35,4 +38,66 @@ class Cmdrunner():
         kwargs.update(self.zz)
         args+=self.z
         return cmd,args,kwargs
+
+class Loadrunner():
+    """
+    Loadrunner runs the cmd and stops it one of the supplied condition
+    check functions returns True.
+    """
+    STARTED=0
+    STOPPED=1
+    def __init__(self,cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},polltime=5):
+        self.cmd=cmd
+        self.conditions=conditions
+        self.ioprio=ioprio
+        self.niceness=niceness
+        self.popenargs=popenargs
+        self.popenkwargs=popenkwargs
+        self.polltime=polltime
+        self.state=None
+    def run(self):
+        self.p=Popen([self.cmd],*self.popenargs,**self.popenkwargs)
+        while self.p.poll() is None:
+            # is running, not done
+            startit=True
+            for check in self.conditions:
+                if check():
+                    self.p.send_signal(SIGSTOP)
+                    self.state=self.STOPPED
+                    startit=False
+            if startit:
+                self.p.send_signal(SIGCONT)
+                self.state=self.STARTED
+            sleep(self.polltime)
+
+def get_cpu_stats():
+    field_names=[ 'user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice' ]
+    with open("/proc/stat") as f:
+        data=f.read()
+    lines=data.split("\n")
+    for line in lines:
+        if line[:4] == "cpu ":
+            cpustat_line=line[4:].strip()
+            break
+    cpustat_fields=cpustat_line.split(" ")
+    cpustats={}
+    for name,field in zip(field_names,cpustat_fields):
+        cpustats.update({name:int(field)})
+
+    _sum=sum(cpustats.values())
+    for k,v in cpustats.items():
+        cpustats.update({k:v/_sum})
+    cpustats.update({'sum':_sum})
+    return cpustats
+
+def get_iowait():
+    return get_cpu_stats()['iowait']
+
+def gen_max_iowait_checker(max_factor):
+    def max_iowait_checker():
+        if get_iowait() <= max_factor:
+                return False
+        else:
+                return True
+    return max_iowait_checker
 
