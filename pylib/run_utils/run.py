@@ -46,8 +46,8 @@ class ConditionRunner():
     """
     STARTED=0
     STOPPED=1
-    def __init__(self,cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},polltime=5):
-        self.cmd=cmd
+    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},polltime=5):
+        self.cmd=popen_cmd
         self.conditions=conditions
         self.ioprio=ioprio
         self.niceness=niceness
@@ -56,7 +56,8 @@ class ConditionRunner():
         self.polltime=polltime
         self.state=None
     def run(self):
-        self.p=Popen([self.cmd],*self.popenargs,**self.popenkwargs)
+        cmd=['nice',"-n"+str(self.niceness,'ionice',self.ioprio]+self.cmd
+        self.p=Popen(cmd,*self.popenargs,**self.popenkwargs)
         while self.p.poll() is None:
             # is running, not done
             startit=True
