@@ -82,6 +82,8 @@ class ConditionRunner():
             if pgid==self.pgid and not pid==self.pid:
                 self.pids.append(pid)
     def _stop_pids_(self):
+        if self.state==self.STOPPED:
+            return
         if debug:
             print("sending SIGSTOP...")
         self._update_pids_()
@@ -93,8 +95,13 @@ class ConditionRunner():
                 poppids.append(pid)
         self.state=self.STOPPED
         for pid in poppids:
-            self.pids.remove(poppids)
+            try:
+                self.pids.remove(poppids)
+            except ValueError as e:
+                warn(str(e))
     def _start_pids_(self):
+        if self.state==self.STARTED:
+            return
         if debug:
             print("sending SIGCONT...")
         for pid in self.pids:
