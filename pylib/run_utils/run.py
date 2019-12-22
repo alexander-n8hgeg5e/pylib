@@ -8,6 +8,7 @@ from os import getpgid,killpg,setpgid,getppid,getpid,kill
 from psutil import pids
 from warnings import warn
 #from pprint import pprint
+from pylib.stat_utils import gen_max_iowait_checker
 
 debug=False
 
@@ -204,21 +205,5 @@ class ConditionRunner():
 #        cpustats.update({k:v/_sum})
 #    cpustats.update({'sum':_sum})
 #    return cpustats
-
-def gen_max_iowait_checker(max_factor):
-    from psutil import cpu_times_percent
-    def get_iowait():
-        return cpu_times_percent().iowait
-    def max_iowait_checker():
-        if debug:
-            print("iowait checker is checking iowait...",end="")
-        iowait=get_iowait()
-        if debug:
-            print("val="+str(iowait))
-        if iowait <= max_factor:
-                return False
-        else:
-                return True
-    return max_iowait_checker
 
 # vim: set foldlevel=0 foldmethod=indent :
