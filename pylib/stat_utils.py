@@ -5,6 +5,8 @@ from os import stat
 from pwd import getpwuid
 from time import sleep
 debug=True
+if debug:
+    from pylib.du import dd,d1,d0
 
 class Proc_stat_getter():
     struct_proc_pid_stat=\
@@ -153,19 +155,16 @@ class Pid_throttler():
         print("tr_stop",level,limits,pid)
 
 class IO_wait_controller():
-    exclude_uids=[]
     exclude_stats={}
     limit_stats={}
-    limit_uid={}
     method_restrict_stats={}
-    method_restrict_uid={}
 
     sleeptime=5
 
     def __init__(self,max_iowait=2):
         self.iowait_checker=gen_max_iowait_checker(max_iowait)
         self.pthr=Pid_throttler()
-        self.throtte_range=range(10)
+        self.throtte_range=10
         self.thr_level=self.pthr.tr_levels.index("zero")
         self.psg=Proc_stat_getter()
 
@@ -188,6 +187,7 @@ class IO_wait_controller():
         for pid in pids:
             l.append((pid,self._get_uid(pid)))
         return l
+
     def _check_pid(self,pid):
         """
         return dict with,
@@ -201,6 +201,7 @@ class IO_wait_controller():
             exclude=True
         keys=list(self.exclude_stats.keys())
         stats=self.psg.get_stats(*keys,single_pid=pid)
+        stats.update({'uid':[(pid,self._get_uid(pid))]})
         for k,v in stats.items():
             for _pid,_v in v:
                 if _pid == pid:
@@ -217,16 +218,15 @@ class IO_wait_controller():
                     if _v == self.method_restrict_stats[k]['val']:
                         methods.update(self.method_restrict_stats[k]['methods'])
         return {'exclude':exclude,'methods':methods,'limits':limits}
-                    
-
         
     def run(self):
         while True:
             if self.iowait_checker():
+                dd("check True")
                 data={}
                 data.update(self.psg.get_stats("delayacct_blkio_ticks"))
-                for i in self.throtte_range:
-                    check_data=self._check_pid(pid)
+                for i in range(min(self.throtte_range,len(data["delayacct_blkio_ticks"]))):
+                    check_data=self._check_pid(str(data["delayacct_blkio_ticks"][i][0]))
                     if not checkdata['exclude']:
                         m=check_data['methods']
                         limits=check_data['limits']
