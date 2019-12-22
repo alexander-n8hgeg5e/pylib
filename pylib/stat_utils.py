@@ -56,7 +56,7 @@ class Proc_stat_getter():
 
         return stats
     
-    def get_stats(self,*nums_or_names,single_pid=False):
+    def get_stats(self,*nums_or_names,single_pid=None):
         numlist=[]
         stats={}
         for thing in nums_or_names:
