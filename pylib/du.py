@@ -6,6 +6,7 @@ import traceback
 from re import compile 
 from pprint import pprint
 from shutil import get_terminal_size
+from traceback import format_tb
 
 debugstate=True
 file=stderr
@@ -49,3 +50,9 @@ def dd(thing,file=file):
         else:
             print( start, file=file )
             print( 4*" " + string_thing , file=file )
+
+def ptb(e):
+        for line in format_tb(e.__traceback__):
+            print(line)
+        print(e)
+
