@@ -6,7 +6,8 @@ from pwd import getpwuid
 from time import sleep
 from math import nan
 from pylib.du import ptb
-from random import choice
+from pylib.random import random_bool
+from fractions import Fraction
 from signal import SIGCONT,SIGSTOP
 from pprint import pprint
 from subprocess import check_call
@@ -112,6 +113,8 @@ class Pid_throttler():
     tr_methods=['stop']
     tr_levels=['zero','low','medium','high','full']
 
+    number_levels=10
+
     def __init__(self):
         self.pids=[]
         self.pid_data={}
@@ -121,6 +124,11 @@ class Pid_throttler():
         self.need_restore_sigcont_cmds_sudo=[]
 
     def throttle(self,level,pretend=True):
+        """
+        The level is 0 for no throttle.
+        The level for max throttle is
+        Pid_throttler.number_levels - 1 .
+        """
         for pid in self.pids:
             self._throttle_pid(pid,level,pretend=pretend)
 
@@ -179,10 +187,9 @@ class Pid_throttler():
                     )
         except FileNotFoundError as e:
             print(e)
-        def check(level):
-            return choice((level*[True])+[False,False,False])
         try:
-            if check(level):
+            a=self.number_levels-1-level
+            if random_bool(Fraction(a*self.number_levels/a*(level+1)):
                 if pretend:
                     print("would send SIGSTOP to pid",pid)
                     print()
@@ -193,7 +200,9 @@ class Pid_throttler():
                     print("would send SIGCONT to pid:",pid)
                     print()
                 else:
-                    kill(pid,SIGCONT)
+                    try:
+                        kill(pid,SIGCONT)
+                    exept Exce
         except ProcessLookupError:
             pass
     
@@ -403,4 +412,4 @@ class IO_wait_controller():
 
 
                             
-# vim: set foldlevel=0 foldmethod=indent foldnestmax=3 :
+# vim: set foldlevel=1 foldmethod=indent foldnestmax=2 :

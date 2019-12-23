@@ -206,4 +206,4 @@ class ConditionRunner():
 #    cpustats.update({'sum':_sum})
 #    return cpustats
 
-# vim: set foldlevel=0 foldmethod=indent :
+# vim: set foldlevel=0 foldmethod=indent foldnestmax=2 :
