@@ -1,16 +1,14 @@
 from subprocess import Popen
 from signal import SIGCONT,SIGSTOP
 from time import sleep
+from sys import stderr
 from pylib.du import dd
 from types import FunctionType
 from os.path import sep as psep
 from os import getpgid,killpg,setpgid,getppid,getpid,kill
 from psutil import pids
 from warnings import warn
-#from pprint import pprint
 from pylib.stat_utils import gen_max_iowait_checker,Pid_throttler
-
-debug=False
 
 class Cmdrunner():
     def __init__(self,cmds,*z,**zz):
@@ -25,13 +23,13 @@ class Cmdrunner():
                 if not dry_run:
                     func(*args,**kwargs)
                 else:
-                    print('dry_run',cmd[0],args,kwargs)
+                    print('dry_run',cmd[0],args,kwargs,file=stderr)
             else:
                 cmd0,args,kwargs=self._prepare_cmd_and_args(cmd)
                 if not dry_run:
                     check_call(cmd0,*args,*kwargs)
                 else:
-                    print('dry_run('+str(cmd0)+', '+str(*args)+', '+str(', '.join(' = '.join(zip((str(j),str(k)) for (j,k) in kwargs.items())))))
+                    print('dry_run('+str(cmd0)+', '+str(*args)+', '+str(', '.join(' = '.join(zip((str(j),str(k)) for (j,k) in kwargs.items())))),file=stderr)
     def _prepare_cmd_and_args(self,cmd):
         args=[]
         kwargs={}
@@ -53,7 +51,7 @@ class ConditionRunner():
     """
     STARTED=0
     STOPPED=1
-    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},polltime=5):
+    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},polltime=5,debug=False,verbose=False):
         self.cmd=popen_cmd
         self.conditions=conditions
         self.ioprio=ioprio
@@ -73,6 +71,8 @@ class ConditionRunner():
         self.checkstats={'lastchecks':[],'last_periodes':[],'avg_period':None}
         self.interp_counter=0
         self.interp_interv=5
+        self.debug=debug
+        self.verbose=verbose if not debug else True
     def _update_pids_(self):
         self.pids=[]
         for pid in pids():
@@ -85,8 +85,8 @@ class ConditionRunner():
     def _stop_pids_(self):
         if self.state==self.STOPPED:
             return
-        if debug:
-            print("sending SIGSTOP...")
+        if self.debug:
+            print("sending SIGSTOP...",file=stderr)
         self._update_pids_()
         poppids=[]
         for pid in self.pids:
@@ -103,8 +103,8 @@ class ConditionRunner():
     def _start_pids_(self):
         if self.state==self.STARTED:
             return
-        if debug:
-            print("sending SIGCONT...")
+        if self.debug:
+            print("sending SIGCONT...",file=stderr)
         for pid in self.pids:
             try:
                 kill(pid,SIGCONT)
@@ -114,8 +114,8 @@ class ConditionRunner():
         self.state=self.STARTED
     def check_wrapper(self,checkfunc):
         self.interp_counter+=1
-        if debug:
-            pprint(self.checkstats)
+        if self.debug:
+            pprint(self.checkstats,file=stderr)
         lc=self.checkstats['lastchecks']
         if len(lc) < 25:
             check_result=checkfunc()
@@ -160,8 +160,8 @@ class ConditionRunner():
                         and not last_change is None \
                         and last_change == round(self.checkstats['avg_period']):
                     self.checkstats['lastchecks'].append(True)
-                    if debug:
-                        print("infering check result: True")
+                    if self.debug:
+                        print("infering check result: True",file=stderr)
                     return True
                 else:
                     check_result=checkfunc()
@@ -192,7 +192,7 @@ class ConditionRunThrottler():
     if one of the supplied condition check functions returns True.
     The method is sending sigstop and sigcont signals.
     """
-    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},control_interval=5):
+    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},control_interval=5,debug=False,verbose=False):
         self.cmd=popen_cmd
         self.conditions=conditions
         self.ioprio=ioprio
@@ -209,7 +209,9 @@ class ConditionRunThrottler():
         self.pid=getpid()
         self.pgid=None
         self.level=0
-        self.pt=Pid_throttler()
+        self.pt=Pid_throttler(verbose=verbose,debug=debug)
+        self.debug=debug
+        self.verbose=verbose if not debug else True
 
     def _update_pids_(self):
         self.pids=[]
@@ -224,11 +226,15 @@ class ConditionRunThrottler():
     def _brake_(self):
         if self.level > 0:
             self.level-=1
+            if self.debug:
+                print("brake...",file=stderr)
         self.pt.throttle(self.level,pretend=False)
 
     def _accel_(self):
         if self.level < 9:
             self.level+=1
+            if self.debug:
+                print("accel...",file=stderr)
         self.pt.throttle(self.level,pretend=False)
 
     def run(self):
