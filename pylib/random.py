@@ -1,5 +1,6 @@
 from fractions import Fraction
 from random import choice
+from random import seed
 
 
 def random_bool(probability):
