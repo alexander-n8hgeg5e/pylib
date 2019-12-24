@@ -6,7 +6,7 @@ from pwd import getpwuid
 from time import sleep
 from math import nan
 from pylib.du import ptb
-from pylib.random import random_bool
+from pylib.random import random_bool_of_num
 from fractions import Fraction
 from signal import SIGCONT,SIGSTOP
 from pprint import pprint
@@ -188,8 +188,7 @@ class Pid_throttler():
         except FileNotFoundError as e:
             print(e)
         try:
-            a=self.number_levels-1-level
-            if random_bool(Fraction(a*self.number_levels/a*(level+1)):
+            if random_bool_of_num(level,self.number_levels):
                 if pretend:
                     print("would send SIGSTOP to pid",pid)
                     print()
