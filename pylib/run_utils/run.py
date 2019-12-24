@@ -8,7 +8,7 @@ from os import getpgid,killpg,setpgid,getppid,getpid,kill
 from psutil import pids
 from warnings import warn
 #from pprint import pprint
-from pylib.stat_utils import gen_max_iowait_checker
+from pylib.stat_utils import gen_max_iowait_checker,Pid_throttler
 
 debug=False
 
@@ -186,6 +186,70 @@ class ConditionRunner():
         self.p.terminate()
         self.p.kill()
 
+class ConditionRunThrottler():
+    """
+    ConditionRunner runs the cmd and throttles it,
+    if one of the supplied condition check functions returns True.
+    The method is sending sigstop and sigcont signals.
+    """
+    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},control_interval=5):
+        self.cmd=popen_cmd
+        self.conditions=conditions
+        self.ioprio=ioprio
+        self.niceness=niceness
+        self.popenargs=popenargs
+        self.popenkwargs=popenkwargs
+        if 'start_new_session' in self.popenkwargs.keys():
+            warn(   
+                    "WARNING: the kwarg \"start_new_session\" is set to True\n"
+                    "in all cases."
+                )
+        self.popenkwargs.update({'start_new_session':False})
+        self.control_interval=control_interval
+        self.pid=getpid()
+        self.pgid=None
+        self.level=0
+        self.pt=Pid_throttler()
+
+    def _update_pids_(self):
+        self.pids=[]
+        for pid in pids():
+            try:
+                pgid=getpgid(pid)
+            except ProcessLookupError:
+                continue
+            if pgid==self.pgid and not pid==self.pid:
+                self.pids.append(pid)
+
+    def _brake_(self):
+        if self.level > 0:
+            self.level-=1
+        self.pt.throttle(self.level,pretend=False)
+
+    def _accel_(self):
+        if self.level < 9:
+            self.level+=1
+        self.pt.throttle(self.level,pretend=False)
+
+    def run(self):
+        cmd=['nice',"-n"+str(self.niceness),'ionice',"-"+self.ioprio]+self.cmd
+        self.p=Popen(cmd,*self.popenargs,**self.popenkwargs)
+        self.pgid=getpgid(self.p.pid)
+        while self.p.poll() is None:
+            # is running, not done
+            for check in self.conditions:
+                if check():
+                    self._brake_()
+                else:
+                    self._accel_()
+            sleep(self.control_interval)
+
+    def __del__(self):
+        self.pt.__del__()
+        del(self.pt)
+        self.p.terminate()
+        self.p.kill()
+
 #def get_cpu_stats():
 #    field_names=[ 'user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest', 'guest_nice' ]
 #    with open("/proc/stat") as f:
@@ -206,4 +270,4 @@ class ConditionRunner():
 #    cpustats.update({'sum':_sum})
 #    return cpustats
 
-# vim: set foldlevel=0 foldmethod=indent foldnestmax=2 :
+# vim: set foldlevel=1 foldmethod=indent foldnestmax=2 :

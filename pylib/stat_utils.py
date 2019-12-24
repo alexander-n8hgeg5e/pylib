@@ -201,7 +201,8 @@ class Pid_throttler():
                 else:
                     try:
                         kill(pid,SIGCONT)
-                    exept Exce
+                    except Exception as e:
+                        print(e)
         except ProcessLookupError:
             pass
     
