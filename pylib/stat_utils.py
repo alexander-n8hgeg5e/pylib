@@ -12,9 +12,6 @@ from signal import SIGCONT,SIGSTOP
 from pprint import pprint
 from subprocess import check_call
 from sys import stderr
-debug=True
-if debug:
-    from pylib.du import dd,d1,d0
 
 class Proc_stat_getter():
     struct_proc_pid_stat=\
@@ -87,7 +84,7 @@ class Proc_stat_getter():
 
         return stats
 
-def gen_max_iowait_checker(max_factor):
+def gen_max_iowait_checker(max_factor,debug=True):
     """
     ret True if limit reached
     """
@@ -115,13 +112,15 @@ class Pid_throttler():
 
     number_levels=10
 
-    def __init__(self):
+    def __init__(self,debug=False,verbose=False):
         self.pids=[]
         self.pid_data={}
         self.psg=Proc_stat_getter()
         self.need_restore_sigcont=[]
         self.need_restore_sigcont_cmds=[]
         self.need_restore_sigcont_cmds_sudo=[]
+        self.debug=debug
+        self.verbose=verbose if not debug else True
 
     def throttle(self,level,pretend=True):
         """
@@ -170,24 +169,25 @@ class Pid_throttler():
         limits.update(self.pid_data[str(pid)]['limits'])
         
     def tr_method_stop(self,level,pid,pretend=True):
-        def gs(stat):
+        if self.debug:
+            def gs(stat):
+                try:
+                    s=self.controller.psg.get_stats(stat,single_pid=pid)[stat]
+                except FileNotFoundError as e:
+                    print(e,file=stderr)
+                ret=(s[0] if len(s)  > 0 else s )
+                ret=(ret[1] if len(ret)  > 1 else ret )
+                return str(ret)
+            print("tr_stop level="+str(level)+" pid="+ str(pid)+" cmd="+str(gs('comm')),file=stderr)
             try:
-                s=self.controller.psg.get_stats(stat,single_pid=pid)[stat]
+                print   (
+                        "delayacct_blkio_ticks="+gs('delayacct_blkio_ticks')+"\n"
+                        "uid="+str(self.controller._get_uid(pid))+"\n"
+                        'state='+gs('state'),
+                        file=stderr
+                        )
             except FileNotFoundError as e:
                 print(e,file=stderr)
-            ret=(s[0] if len(s)  > 0 else s )
-            ret=(ret[1] if len(ret)  > 1 else ret )
-            return str(ret)
-        print("tr_stop level="+str(level)+" pid="+ str(pid)+" cmd="+str(gs('comm')),file=stderr)
-        try:
-            print   (
-                    "delayacct_blkio_ticks="+gs('delayacct_blkio_ticks')+"\n"
-                    "uid="+str(self.controller._get_uid(pid))+"\n"
-                    'state='+gs('state'),
-                    file=stderr
-                    )
-        except FileNotFoundError as e:
-            print(e,file=stderr)
         try:
             if random_bool_of_num(level,self.number_levels):
                 if pretend:
@@ -409,7 +409,6 @@ class IO_wait_controller():
         except Exception as e:
             ptb(e)
             self.pthr.__del__()
-            del(self.pthr)
 
 
                             

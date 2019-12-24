@@ -8,7 +8,7 @@ from os.path import sep as psep
 from os import getpgid,killpg,setpgid,getppid,getpid,kill
 from psutil import pids
 from warnings import warn
-from pylib.stat_utils import gen_max_iowait_checker,Pid_throttler
+from pylib.stat_utils import Pid_throttler
 
 class Cmdrunner():
     def __init__(self,cmds,*z,**zz):
@@ -249,10 +249,10 @@ class ConditionRunThrottler():
                 else:
                     self._accel_()
             sleep(self.control_interval)
+        return self.p.returncode
 
     def __del__(self):
         self.pt.__del__()
-        del(self.pt)
         self.p.terminate()
         self.p.kill()
 
