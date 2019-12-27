@@ -160,6 +160,8 @@ class Pid_throttler():
     def _throttle_pid(self,pid,level,pretend=True):
         if not 'backup' in self.pid_data[str(pid)].keys():
             self._backup_pid_data(str(pid))
+        if self.debug:
+            print("throttle methods=",self.tr_methods)
         for m in self.tr_methods:
             if m in self.pid_data[str(pid)]['methods']:
                 getattr(self,"tr_method_"+m)(level,pid,pretend=pretend)
