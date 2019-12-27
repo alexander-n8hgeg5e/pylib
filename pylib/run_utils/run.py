@@ -82,6 +82,7 @@ class ConditionRunner():
                 continue
             if pgid==self.pgid and not pid==self.pid:
                 self.pids.append(pid)
+
     def _stop_pids_(self):
         if self.state==self.STOPPED:
             return
@@ -112,6 +113,7 @@ class ConditionRunner():
                 warn("process vanished: "+str(pid))
                 pass
         self.state=self.STARTED
+
     def check_wrapper(self,checkfunc):
         self.interp_counter+=1
         if self.debug:
@@ -182,6 +184,7 @@ class ConditionRunner():
             if startit and self.state == self.STOPPED:
                 self._start_pids_()
             sleep(self.polltime)
+
     def __del__(self):
         self.p.terminate()
         self.p.kill()
@@ -191,14 +194,24 @@ class ConditionRunThrottler():
     ConditionRunner runs the cmd and throttles it,
     if one of the supplied condition check functions returns True.
     The method is sending sigstop and sigcont signals.
+    update_pids needs to be called and adds
+    all the pids of the own process group except the
+    pid running this code.
     """
-    def __init__(self,popen_cmd,conditions,ioprio="c3",niceness="19",popenargs=[],popenkwargs={},control_interval=5,debug=False,verbose=False):
+    def __init__(
+                    self, popen_cmd, conditions, ioprio="c3", niceness="19",
+                    popenargs=[], popenkwargs={},
+                    control_interval = 5,
+                    debug = False,verbose = False ,
+                    update_divider=10
+                ):
         self.cmd=popen_cmd
         self.conditions=conditions
         self.ioprio=ioprio
         self.niceness=niceness
         self.popenargs=popenargs
         self.popenkwargs=popenkwargs
+        self.update_divider=update_divider
         if 'start_new_session' in self.popenkwargs.keys():
             warn(   
                     "WARNING: the kwarg \"start_new_session\" is set to True\n"
@@ -207,41 +220,47 @@ class ConditionRunThrottler():
         self.popenkwargs.update({'start_new_session':False})
         self.control_interval=control_interval
         self.pid=getpid()
-        self.pgid=None
+        self.pgid=getpgid(self.pid)
         self.level=0
         self.pt=Pid_throttler(verbose=verbose,debug=debug)
         self.debug=debug
         self.verbose=verbose if not debug else True
 
     def _update_pids_(self):
-        self.pids=[]
+        if self.debug:
+            print("updateing pids...")
         for pid in pids():
             try:
                 pgid=getpgid(pid)
             except ProcessLookupError:
                 continue
             if pgid==self.pgid and not pid==self.pid:
-                self.pids.append(pid)
+                self.pt.add_pid(pid)
+                if self.debug:
+                    print("added pid: "+str(pid))
 
     def _brake_(self):
-        if self.level > 0:
-            self.level-=1
-            if self.debug:
-                print("brake...",file=stderr)
-        self.pt.throttle(self.level,pretend=False)
-
-    def _accel_(self):
         if self.level < 9:
             self.level+=1
             if self.debug:
-                print("accel...",file=stderr)
+                print("level--",file=stderr)
+        self.pt.throttle(self.level,pretend=False)
+
+    def _accel_(self):
+        if self.level > 0:
+            self.level-=1
+            if self.debug:
+                print("level++",file=stderr)
         self.pt.throttle(self.level,pretend=False)
 
     def run(self):
         cmd=['nice',"-n"+str(self.niceness),'ionice',"-"+self.ioprio]+self.cmd
         self.p=Popen(cmd,*self.popenargs,**self.popenkwargs)
         self.pgid=getpgid(self.p.pid)
+        self._update_pids_()
+        counter=0
         while self.p.poll() is None:
+            counter+=1
             # is running, not done
             for check in self.conditions:
                 if check():
@@ -249,6 +268,8 @@ class ConditionRunThrottler():
                 else:
                     self._accel_()
             sleep(self.control_interval)
+            if counter % self.update_divider == 0:
+                self._update_pids_()
         return self.p.returncode
 
     def __del__(self):

@@ -10,7 +10,7 @@ from pylib.random import random_bool_of_num
 from fractions import Fraction
 from signal import SIGCONT,SIGSTOP
 from pprint import pprint
-from subprocess import check_call
+from subprocess import check_call,DEVNULL
 from sys import stderr
 
 class Proc_stat_getter():
@@ -84,7 +84,7 @@ class Proc_stat_getter():
 
         return stats
 
-def gen_max_iowait_checker(max_factor,debug=True):
+def gen_max_iowait_checker(max_factor,debug=False,verbose=True):
     """
     ret True if limit reached
     """
@@ -95,11 +95,15 @@ def gen_max_iowait_checker(max_factor,debug=True):
         if debug:
             print("iowait checker is checking iowait...",end="",file=stderr)
         iowait=get_iowait()
-        if debug:
+        if debug or verbose:
             print("val="+str(iowait),file=stderr)
         if iowait <= max_factor:
+                if debug:
+                    print("iowait ok")
                 return False
         else:
+                if debug:
+                    print("iowait high")
                 return True
     return max_iowait_checker
 
@@ -129,18 +133,29 @@ class Pid_throttler():
         Pid_throttler.number_levels - 1 .
         """
         for pid in self.pids:
+            if self.debug:
+                print('applying level "'+str(level)+'"')
             self._throttle_pid(pid,level,pretend=pretend)
 
     def add_pid(self,pid,methods=['stop','renice'],limits={'maxnice': 19}):
-        self.pids.append(pid)
-        pid_data={}
-        self.pid_data.update(   {
-                                 str(pid) : {
-                                            'methods': methods ,
-                                            'limits':limits,
-                                            }
-                                },
-                            )
+        if not pid in self.pids:
+            self.pids.append(pid)
+            pid_data={}
+            self.pid_data.update(   {
+                                    str(pid) : {
+                                                    'methods': methods ,
+                                                    'limits':limits,
+                                                }
+                                    },
+                                )
+        if self.debug:
+            print("added pid: "+str(pid))
+
+    def remove_pid(self,pid):
+        self.pids.pop(str(pid))
+        self.pid_data.pop(str(pid))
+        if self.debug:
+            print("removed pid: "+str(pid))
 
     def _backup_pid_data(self,pid):
         stats=self.psg.get_stats('nice','state',single_pid=pid)
@@ -171,25 +186,8 @@ class Pid_throttler():
         limits.update(self.pid_data[str(pid)]['limits'])
         
     def tr_method_stop(self,level,pid,pretend=True):
-        if self.debug:
-            def gs(stat):
-                try:
-                    s=self.controller.psg.get_stats(stat,single_pid=pid)[stat]
-                except FileNotFoundError as e:
-                    print(e,file=stderr)
-                ret=(s[0] if len(s)  > 0 else s )
-                ret=(ret[1] if len(ret)  > 1 else ret )
-                return str(ret)
-            print("tr_stop level="+str(level)+" pid="+ str(pid)+" cmd="+str(gs('comm')),file=stderr)
-            try:
-                print   (
-                        "delayacct_blkio_ticks="+gs('delayacct_blkio_ticks')+"\n"
-                        "uid="+str(self.controller._get_uid(pid))+"\n"
-                        'state='+gs('state'),
-                        file=stderr
-                        )
-            except FileNotFoundError as e:
-                print(e,file=stderr)
+        if self.verbose:
+            print("level="+str(level))
         try:
             if random_bool_of_num(level,self.number_levels):
                 if pretend:
@@ -203,11 +201,15 @@ class Pid_throttler():
                     print(file=stderr)
                 else:
                     try:
+                        if self.debug or self.verbose:
+                            print("SIGCONT->"+str(pid))
                         kill(pid,SIGCONT)
                     except Exception as e:
-                        print(e,file=stderr)
+                        ptb(e)
         except ProcessLookupError:
-            pass
+            if self.debug:
+                print("pid not found, removing pid: "+str(pid),file=stderr)
+            self.remove_pid(pid)
     
         # def gs(stat):
         #     s=self.controller.psg.get_stats(stat,single_pid=pid)[stat]
@@ -216,7 +218,7 @@ class Pid_throttler():
 
     def _stop_pid(self,pid):
         try:
-            check_call(['kill','-V'])
+            check_call(['kill','-V'],stderr=DEVNULL,stdout=DEVNULL)
             cmd=['kill','-sSIGCONT',str(pid)]
             sudocmd=['sudo']+cmd
 
@@ -231,16 +233,18 @@ class Pid_throttler():
                 data=b''
                 while True:
                     data+=f.read(10)
-                    fields=data.split(" ")
+                    fields=data.split(b" ")
                     if len(fields) >= 4:
                         break
                 if not fields[2] in b'TZX':
+                    if self.debug or self.verbose:
+                        print("sending SIGSTOP to "+str(pid))
                     kill(pid,SIGSTOP)
                     self.need_restore_sigcont.append(pid)
                     self.need_restore_sigcont_cmds.append(cmd)
                     self.need_restore_sigcont_cmds_sudo.append(sudocmd)
         except Exception as e:
-            print(e,file=stderr)
+            ptb(e)
         
     def tr_method_ionice(self,level,pid,pretend=True):
         pass
@@ -255,25 +259,25 @@ class Pid_throttler():
                 try:
                     kill(pid,SIGCONT)
                 except Exception as e:
-                    print(e,file=stderr)
+                    ptb(e)
         except Exception as e:
-            print(e,file=stderr)
+            ptb(e)
             try:
                 for cmd in self.need_restore_sigcont_cmds:
                     try:
                         check_call(cmd)
                     except Exception as e:
-                        print(e,file=stderr)
+                        ptb(e)
             except Exception as e:
-                print(e,file=stderr)
+                ptb(e)
                 try:
                     for sudocmd in self.need_restore_sigcont_cmds_sudo:
                         try:
                             check_call(sudocmd)
                         except Exception as e:
-                            print(e,file=stderr)
+                            ptb(e)
                 except Exception as e:
-                    print(e,file=stderr)
+                    ptb(e)
 
     def __del__(self):
         self._cleanup()

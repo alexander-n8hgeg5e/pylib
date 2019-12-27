@@ -51,8 +51,8 @@ def dd(thing,file=file):
             print( start, file=file )
             print( 4*" " + string_thing , file=file )
 
-def ptb(e):
+def ptb(e,file=stderr):
         for line in format_tb(e.__traceback__):
-            print(line)
-        print(e)
+            print(line,file=file)
+        print(e,file=file)
 
