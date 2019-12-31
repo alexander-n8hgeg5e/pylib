@@ -96,7 +96,7 @@ def gen_max_iowait_checker(max_factor,debug=False,verbose=True):
             print("iowait checker is checking iowait...",end="",file=stderr)
         iowait=get_iowait()
         if debug or verbose:
-            print("val="+str(iowait),file=stderr)
+            print("iow="+str(iowait),file=stderr,end=';')
         if iowait <= max_factor:
                 if debug:
                     print("iowait ok")
@@ -187,7 +187,7 @@ class Pid_throttler():
         
     def tr_method_stop(self,level,pid,pretend=True):
         if self.verbose:
-            print("level="+str(level))
+            print("lvl="+str(level),end=';')
         try:
             if random_bool_of_num(level,self.number_levels):
                 if pretend:
@@ -202,7 +202,7 @@ class Pid_throttler():
                 else:
                     try:
                         if self.debug or self.verbose:
-                            print("SIGCONT->"+str(pid))
+                            print("SIGCONT->"+str(pid),end=";")
                         kill(pid,SIGCONT)
                     except Exception as e:
                         ptb(e)
@@ -238,7 +238,7 @@ class Pid_throttler():
                         break
                 if not fields[2] in b'TZX':
                     if self.debug or self.verbose:
-                        print("sending SIGSTOP to "+str(pid))
+                        print("SIGSTOP->"+str(pid),end=';')
                     kill(pid,SIGSTOP)
                     self.need_restore_sigcont.append(pid)
                     self.need_restore_sigcont_cmds.append(cmd)
