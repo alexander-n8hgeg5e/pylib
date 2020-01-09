@@ -2,6 +2,7 @@ from pylib.du import dd
 from sys import stderr,stdout,modules
 from os import get_terminal_size
 from sys import stderr,stdout
+from subprocess import CalledProcessError
 
 class SubprocessVerbosityDecorator():
     kwargs= {
@@ -93,10 +94,10 @@ class VerbosityDecorator():
         self.f=f
 
     def __call__(self,*z,shorten_msg='tw',verbose=True,msg=None,**zz):
-        self._pre_(*z,shorten_msg='tw',verbose=verbose,msg=msg,initdec=initdec,**zz)
-        self._post_(*z,shorten_msg='tw',verbose=verbose,msg=msg,initdec=initdec,**zz)
+        self._pre_(*z,**zz)
+        return self._post_(*z,**zz)
 
-    def _pre_(self,*z,**zz):
+    def _pre_(self,*z,shorten_msg='tw',verbose=True,msg=None,**zz):
         if not 'stderr' in zz.keys():
             zz['stderr']=stderr
         if not 'stdout' in zz.keys():
@@ -116,29 +117,21 @@ class VerbosityDecorator():
         self.f(*z,**zz)
 
 class Subprocess_call_VerbosityDecorator(VerbosityDecorator):
-    def _post_(self,*z,**zz):
+    def _post_(self,*z,verbose=True,**zz):
         retval=self.f(*z,**zz)
         if verbose:
             print( "success" if retval==0 else "failed" )
         return(retval)
 
-class Subprocess_Popen_VerbosityDecorator(VerbosityDecorator):
-    def _post_(self,*z,**zz):
-        try:
-            p=self.f(*z,**zz)
-            if verbose:
-                print( "running" )
-            return(p)
+class Subprocess_Popen_init_VerbosityDecorator(VerbosityDecorator):
+    def _post_(self,*z,verbose=True,**zz):
+        self.f(*z,**zz)
+        if verbose:
+            print( "initialized" )
 
 class Subprocess_check_output_VerbosityDecorator(VerbosityDecorator):
-    def _post_(self,*z,**zz):
-        try:
-            retval=self.f(*z,**zz)
-            print( "success" )
-            return(retval)
-        except CalledProcessError as e:
-            print( "failed" )
-            raise
+    def _post_(self,*z,verbose=True,**zz):
+        return self.f(*z,**zz)
 
 class Subprocess_check_call_VerbosityDecorator(Subprocess_check_output_VerbosityDecorator):
     pass
