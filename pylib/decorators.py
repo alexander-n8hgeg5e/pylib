@@ -1,6 +1,7 @@
 from pylib.du import dd
 from sys import stderr,stdout,modules
 from os import get_terminal_size
+from sys import stderr,stdout
 
 class SubprocessVerbosityDecorator():
     kwargs= {
@@ -84,3 +85,60 @@ class SubprocessVerbosityDecorator():
                 else:
                     return retval
             return call_1
+
+class VerbosityDecorator():
+    msgprefix="CMD:"
+
+    def __init__(self,f):
+        self.f=f
+
+    def __call__(self,*z,shorten_msg='tw',verbose=True,msg=None,**zz):
+        self._pre_(*z,shorten_msg='tw',verbose=verbose,msg=msg,initdec=initdec,**zz)
+        self._post_(*z,shorten_msg='tw',verbose=verbose,msg=msg,initdec=initdec,**zz)
+
+    def _pre_(self,*z,**zz):
+        if not 'stderr' in zz.keys():
+            zz['stderr']=stderr
+        if not 'stdout' in zz.keys():
+            zz['stdout']=stdout
+        if verbose and msg is None:
+           msg = str(z)
+        end=" ... "
+        head=self.msgprefix+" "
+        if verbose and shorten_msg=='tw':
+            maxlen=get_terminal_size().columns - len(end) - len(head)
+            if len(msg) > maxlen:
+                msg=msg[:maxlen]
+        if verbose:
+            print(head+msg,end=end)
+
+    def _post_(self,*z,**zz):
+        self.f(*z,**zz)
+
+class Subprocess_call_VerbosityDecorator(VerbosityDecorator):
+    def _post_(self,*z,**zz):
+        retval=self.f(*z,**zz)
+        if verbose:
+            print( "success" if retval==0 else "failed" )
+        return(retval)
+
+class Subprocess_Popen_VerbosityDecorator(VerbosityDecorator):
+    def _post_(self,*z,**zz):
+        try:
+            p=self.f(*z,**zz)
+            if verbose:
+                print( "running" )
+            return(p)
+
+class Subprocess_check_output_VerbosityDecorator(VerbosityDecorator):
+    def _post_(self,*z,**zz):
+        try:
+            retval=self.f(*z,**zz)
+            print( "success" )
+            return(retval)
+        except CalledProcessError as e:
+            print( "failed" )
+            raise
+
+class Subprocess_check_call_VerbosityDecorator(Subprocess_check_output_VerbosityDecorator):
+    pass

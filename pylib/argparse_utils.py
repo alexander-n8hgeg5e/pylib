@@ -82,7 +82,7 @@ class Action_add_kw_pass_through_arg(Default_help_action):
             dd(key)
             namespace.kw_pass_through_args.update({key:val})
             setattr(namespace,self.dest,val)
-            setattr(parser._actions[''],self.dest,val)
+            #setattr(parser._actions[''],self.dest,val)
 
 class Action_remove_pass_through_arg(Default_help_action):
     def __init__(self,*z,nargs=0,**zz):
