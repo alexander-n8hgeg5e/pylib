@@ -2,7 +2,7 @@ from argparse import Action,ArgumentParser,ArgumentDefaultsHelpFormatter
 from subprocess import call
 from os import get_terminal_size
 from re import sub
-#from pylib.du import dd
+from pylib.du import dd
 
 def get_default_args(argument_parser,try_filter_unset=False):
     """
@@ -128,6 +128,8 @@ class PassThroughArgumentParser(ArgumentParser):
         self.add_argument( dest='kw_pass_through_args', nargs="*", action=Action_add_kw_pass_through_arg, default=default_kw_pass_through_args)
         self.add_argument('--debug',"-D",action="store_true",default=False)
         self.add_argument('-v','--verbose',action='store_true',default=False)
+        for a in self._actions:
+            print(a)
 
     #def error(self,*msg,**zz):
     #    print(msg,zz)
@@ -144,14 +146,48 @@ class PassThroughArgumentParser(ArgumentParser):
     #    return [(name, getattr(self, name)) for name in names]
 
     def add_argument(self,*z,**zz):
+        if 'dest' in zz.keys() and zz['dest'] =='pass_through_args':
+            print("add arg pass_through_args")
+            print("z,zz:",z,zz)
+            for a in self._actions:
+                if a.dest=='pass_through_args':
+                    print(a)
         super().add_argument(*z,**zz)
+        if 'dest' in zz.keys() and zz['dest'] =='pass_through_args':
+            print("add arg pass_through_args after super call")
+            for a in self._actions:
+                if a.dest=='pass_through_args':
+                    print(a)
+            print("endsection")
         for a in self._actions:
+            if 'dest' in zz.keys() and zz['dest'] =='pass_through_args':
+                print(a)
             for aa in self.default_pass_through_args:
                 if a.dest==sub("-","_",aa.strip("-")):
+                    ddd=False
+                    if a.default!=True:
+                        dd("start section")
+                        dd(zz)
+                        dd(aa)
+                        dd(a)
+                        ddd=True
                     a.default=True
+                    if ddd==True:
+                        dd(a)
+                        dd("end section")
             for aa in self.default_kw_pass_through_args.keys():
                 if a.dest==sub("-","_",aa.strip("-")):
+                    ddd=False
+                    if a.default!=self.default_kw_pass_through_args[aa]:
+                        dd("start section")
+                        dd(zz)
+                        dd(aa)
+                        dd(a)
+                        ddd=True
                     a.default=self.default_kw_pass_through_args[aa]
+                    if ddd==True:
+                        dd(a)
+                        dd("end section")
 
     def print_help(self,*z):
         from pprint import pprint
