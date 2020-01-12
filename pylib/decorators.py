@@ -126,7 +126,7 @@ class Subprocess_Popen_init_VerbosityDecorator(VerbosityDecorator):
     def _post_(self,*z,stdout=DEVNULL,stderr=DEVNULL,verbose=True,**zz):
         self.f(*z,stdout=stdout,stderr=stderr,**zz)
         if verbose:
-            log( "initialized "+ self.verbose_msg ,level=INFO)
+            log( "BGRND: "+ self.verbose_msg ,level=INFO)
 
 class Subprocess_check_output_VerbosityDecorator(VerbosityDecorator):
     def _post_(self,*z,verbose=True,stdout=None,stderr=DEVNULL,**zz):

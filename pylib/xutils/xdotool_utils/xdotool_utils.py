@@ -1,4 +1,4 @@
-from subprocess import call,Popen,PIPE
+from subprocess import call,Popen,PIPE,DEVNULL
 from re import sub
 from os import environ
 
@@ -8,9 +8,21 @@ def get_current_desktop():
     
 
 def get_root_win_geometry():
-    p=Popen([ 'xdotool', 'search',  '--maxdepth', '0', '.*', 'getwindowgeometry' ],stdout=PIPE)
+    p=Popen([ 'xdotool', 'search',  '--maxdepth', '0', '.*', 'getwindowgeometry' ],stdout=PIPE,stderr=DEVNULL)
     txt_lines=p.stdout.read().decode().split('\n')
     return extract_geom(txt_lines)
+
+def get_root_win_id():
+    p=Popen([ 'xdotool', 'search',  '--maxdepth', '0', '.*' ], stdout=PIPE, stderr=DEVNULL)
+    txt_lines=p.stdout.read().decode().split('\n')
+    found=""
+    for line in txt_lines:
+        line=line.strip()
+        if found =="" and line != "":
+            found=line
+        elif found != "" and line !="":
+            raise Exception("Error: there should be only one line with something not stripable by strip() without args")
+    return int(line)
 
 def extract_geom(txt_lines):
     data={}
