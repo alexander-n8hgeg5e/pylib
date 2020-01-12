@@ -4,6 +4,21 @@ from os import get_terminal_size
 from sys import stderr as sys_stderr,stdout as sys_stdout
 from subprocess import CalledProcessError,DEVNULL
 
+import syslog
+log_facility = syslog.LOG_USER
+INFO=log_facility+syslog.LOG_INFO
+WARN=log_facility+syslog.LOG_WARNING
+ERR=log_facility+syslog.LOG_ERR
+def info(msg):
+    syslog.syslog(INFO,msg)
+def warn(msg):
+    logger.warning(WARN,msg)
+def err(msg):
+    logger.warning(ERR,msg)
+def log(msg,level=INFO):
+    syslog.syslog(level,msg)
+    
+
 class SubprocessVerbosityDecorator():
     kwargs= {
                 'msg':None,
@@ -12,10 +27,10 @@ class SubprocessVerbosityDecorator():
                 'shorten_msg':'tw',
             }
     def __new__(cls,*z,exclude_kwargs=[],**zz):
-        print("__new__",cls.__name__)
+        log("__new__",cls.__name__)
         d=cls.DecoratorGenerator(*z,exclude_kwargs=exclude_kwargs,**zz)
         c=d.Decorator
-        print("__new__",cls.__name__)
+        log("__new__",cls.__name__)
         return d.Decorator.__new__(c,*z,**zz)
 
     class DecoratorGenerator():
@@ -23,9 +38,9 @@ class SubprocessVerbosityDecorator():
             class Decorator():
                 def_zz=None
                 def __new__(cls,*z,**zz):
-                    print("__new__",cls.__name__)
+                    log("__new__",cls.__name__)
                 def __init__(self,*z,**zz):
-                    print( "uisufi" )
+                    log( "uisufi" )
             kwargs={}
             for k,v in SubprocessVerbosityDecorator.kwargs.items():
                 if not k in exclude_kwargs:
@@ -37,16 +52,16 @@ class SubprocessVerbosityDecorator():
                 return Decorator.__new__(*z,**kwargs)
             return( cls.__new__(cls,*z,**zz) )
         def __init__( self,*z, exclude_kwargs=[],initdec=False ,**zz):
-            print("__init__",self.__class__.__name__)
+            log("__init__",self.__class__.__name__)
         @classmethod
         def get_init(self,def_zz=None):
             def init(self,f,*z,def_zz=def_zz,**zz):
                 self.f=f
-                print("##############")
+                log("##############")
             return init
         @classmethod
         def get_call(cls,def_zz={}):
-            print(cls,def_zz)
+            log(cls,def_zz)
             call_0=cls.get_call_0(cls,def_zz=def_zz)
             call_1=cls.get_call_1(cls,def_zz=def_zz)
             def call(*z,**zz):
@@ -73,7 +88,7 @@ class SubprocessVerbosityDecorator():
                     if len(msg) > maxlen:
                         msg=msg[:maxlen]
                 if verbose:
-                    print(head+msg,end=end)
+                    log(head+msg,end=end)
             return call_0
 
         def get_call_1(cls,def_zz=None):
@@ -81,7 +96,7 @@ class SubprocessVerbosityDecorator():
                 retval = ""#self.f(*z,**zz)
                 if type(retval) is int:
                     if verbose:
-                        print( "success" if retval==0 else "failed" )
+                        log( "success" if retval==0 else "failed" )
                     return(retval)
                 else:
                     return retval
@@ -107,7 +122,7 @@ class VerbosityDecorator():
             if len(msg) > maxlen:
                 msg=msg[:maxlen]
         if verbose:
-            print(head+msg,end=end,file=sys_stdout)
+            log(head+msg,end=end,file=sys_stdout)
 
     def _post_(self,*z,stdout=DEVNULL,stderr=DEVNULL,**zz):
         self.f(*z,stdout=stdout,stderr=stderr,**zz)
@@ -116,14 +131,14 @@ class Subprocess_call_VerbosityDecorator(VerbosityDecorator):
     def _post_(self,*z,verbose=True,**zz):
         retval=self.f(*z,**zz)
         if verbose:
-            print( "success" if retval==0 else "failed" , file=sys_stdout)
+            log( "success" if retval==0 else "failed" , file=sys_stdout)
         return(retval)
 
 class Subprocess_Popen_init_VerbosityDecorator(VerbosityDecorator):
     def _post_(self,*z,stdout=DEVNULL,stderr=DEVNULL,verbose=True,**zz):
         self.f(*z,stdout=stdout,stderr=stderr,**zz)
         if verbose:
-            print( "initialized" ,file=sys_stdout)
+            log( "initialized" ,file=sys_stdout)
 
 class Subprocess_check_output_VerbosityDecorator(VerbosityDecorator):
     def _post_(self,*z,verbose=True,stdout=None,stderr=DEVNULL,**zz):
