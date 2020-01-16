@@ -22,7 +22,7 @@ def get_root_win_id():
             found=line
         elif found != "" and line !="":
             raise Exception("Error: there should be only one line with something not stripable by strip() without args")
-    return int(line)
+    return int(found)
 
 def extract_geom(txt_lines):
     data={}
