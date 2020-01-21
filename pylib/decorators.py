@@ -145,3 +145,5 @@ class Subprocess_check_output_VerbosityDecorator(VerbosityDecorator):
 
 class Subprocess_check_call_VerbosityDecorator(Subprocess_check_output_VerbosityDecorator):
     pass
+
+# vim: foldmethod=indent foldlevel=0 :
