@@ -115,6 +115,7 @@ def prepare_kw_pass_through_args(kwargs):
 
 class PassThroughArgumentParser(ArgumentParser):
     def __init__(self, *z, wrapped_cmd=[], default_pass_through_args=[], ignore_destinations=[],default_kw_pass_through_args={}, **zz):
+        dd(default_pass_through_args)
         self.ignore_destinations=ignore_destinations
         self.wrapped_cmd=wrapped_cmd
         self.default_pass_through_args=default_pass_through_args
@@ -128,8 +129,8 @@ class PassThroughArgumentParser(ArgumentParser):
         self.add_argument( dest='kw_pass_through_args', nargs="*", action=Action_add_kw_pass_through_arg, default=default_kw_pass_through_args)
         self.add_argument('--debug',"-D",action="store_true",default=False)
         self.add_argument('-v','--verbose',action='store_true',default=False)
-        for a in self._actions:
-            print(a)
+        #for a in self._actions:
+        #    print(a)
 
     #def error(self,*msg,**zz):
     #    print(msg,zz)
@@ -152,6 +153,8 @@ class PassThroughArgumentParser(ArgumentParser):
             for a in self._actions:
                 if a.dest=='pass_through_args':
                     print(a)
+        dd(z)
+        dd(zz)
         super().add_argument(*z,**zz)
         if 'dest' in zz.keys() and zz['dest'] =='pass_through_args':
             print("add arg pass_through_args after super call")
