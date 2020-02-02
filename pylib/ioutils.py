@@ -6,6 +6,10 @@ class AsyncLineReader():
         set_blocking(filehandle.raw.fileno(),False)
         self.databuffer=b''
         self.linebuffer=[]
+
+    def read_all(self):
+        set_blocking(self.file.raw.fileno(),True)
+        return self.read()
     
     def read(self):
         data=self.file.read()
