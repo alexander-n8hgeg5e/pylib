@@ -125,23 +125,25 @@ class Action_add_pass_through_args(Default_help_action):
         setattr(namespace, self.dest, values)
 
 class Action_disable():
-    def __new__(self,what):
+    def __new__(self,*what):
         class Action_disable(Default_help_action,Action_no_pass_through):
             def __init__(self,*z,**zz):
                 super().__init__(*z,nargs=0,**zz)
             def __call__(self, parser, namespace, values, option_string):
-                if what in namespace:
-                    setattr(namespace,what,False)
+                for w in what:
+                    if w in namespace:
+                        setattr(namespace,w,False)
         return Action_disable
 
 class Action_enable():
-    def __new__(self,what):
+    def __new__(self,*what):
         class Action_enable(Default_help_action,Action_no_pass_through):
             def __init__(self,*z,**zz):
                 super().__init__(*z,nargs=0,**zz)
             def __call__(self, parser, namespace, values, option_string):
-                if what in namespace:
-                    setattr(namespace,what,True)
+                for w in what:
+                    if w in namespace:
+                        setattr(namespace,w,True)
         return Action_enable
 
 class Action_set():
