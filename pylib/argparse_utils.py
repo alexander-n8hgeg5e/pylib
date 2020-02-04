@@ -248,7 +248,7 @@ class PassThroughArgumentParser(ArgumentParser):
                 continue
             if j is None:
                 continue
-            if i in self.output_conversions.keys():
+            if i in self.output_conversions.keys() and not j is False:
                 l+=[self.output_conversions[i](i,j)]
             else:
                 if type(j) is bool:
