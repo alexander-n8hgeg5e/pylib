@@ -52,7 +52,14 @@ def dd(thing,file=file):
             print( 4*" " + string_thing , file=file )
 
 def ptb(e,file=stderr):
-        for line in format_tb(e.__traceback__):
-            print(line,file=file)
-        print(e,file=file)
+    for line in format_tb(e.__traceback__):
+        print(line,file=file)
+    print(e,file=file)
+
+def ftb(e):
+    s=""
+    for line in format_tb(e.__traceback__):
+        s+=line+"\n"
+    s+=str(e)+"\n"
+    return s
 

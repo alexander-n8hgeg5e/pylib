@@ -65,8 +65,9 @@ def get_connected_output_count_at_env_layout_index(position_index,layout=None,re
 
 def env_screen_layout_2_region_layout(layout=None,x_display=None):
     """
-    assumes that regions are in proper order, not higher region
-    is lower one env-screen-layout.
+    assumes that regions are in proper order,
+    that means the lower regions are listed first
+    in the env-screen-layout env variable.
     """
     if layout is None:
         layout=parse_screen_layout_env_var()
