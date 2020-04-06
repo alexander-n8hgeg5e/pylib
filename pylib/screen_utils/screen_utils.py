@@ -95,3 +95,16 @@ def layout2xpos(layout,index):
     for i in range(index):
         pos+=int(layout[i]['size'][0])
     return pos
+
+def layout2xpos_v2(layout,index):
+    """
+    exspects a layout like this:
+    [
+    {'x_server': 'skyscraper:0', 'dim': ['1360', '768']},
+    {'x_server': 'skyscrapr:0', 'dim': ['1920', '1080']},
+    ]
+    """
+    pos=0
+    for i in range(index):
+        pos+=int(layout[i]['dim'][0])
+    return pos
