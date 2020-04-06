@@ -56,10 +56,9 @@ def ptb(e,file=stderr):
         print(line,file=file)
     print(e,file=file)
 
+def ftb_list(e):
+    return format_tb(e.__traceback__) + [str(e)]
+
 def ftb(e):
-    s=""
-    for line in format_tb(e.__traceback__):
-        s+=line+"\n"
-    s+=str(e)+"\n"
-    return s
+    return "\n".join(ftb_list(e))
 
