@@ -39,3 +39,5 @@ def parse_screen_layout_env_var_v2():
         layout.update(geo)
         screen_layout.append(layout)
     return screen_layout
+
+# vim: set foldmethod=indent foldlevel=0 foldnestmax=1 :
