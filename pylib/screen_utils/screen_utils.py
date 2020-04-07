@@ -44,13 +44,13 @@ def get_connected_output_count_at_env_layout_index(position_index,layout=None,re
     to right.
     """
     if not layout:
-        env_layout=parse_screen_layout_env_var()
-    x_display=env_layout[position_index]['x_server']
+        layout=parse_screen_layout_env_var()
+    x_display=layout[position_index]['x_server']
     outputs=get_connected_outputs(x_display=x_display)
     # the pos is a position on one x-server
     pos=0
     for j in range(position_index+1):
-        if env_layout[j]['x_server'] == x_display:
+        if layout[j]['x_server'] == x_display:
             for i in range(len(outputs)):
                     x=int(outputs[i]['pos'][0])
                     #print("pos_index:",j,"oup_pos:",x,'env_pos:',pos)
@@ -59,7 +59,7 @@ def get_connected_output_count_at_env_layout_index(position_index,layout=None,re
                             return i , x_display
                         else:
                             return i
-            pos+=int(env_layout[j]['size'][0])
+            pos+=int(layout[j]['size'][0])
     # if not found
     return None
 
@@ -83,13 +83,13 @@ def get_connected_output_count_at_env_layout_index_v2(position_index,layout=None
     to right.
     """
     if not layout:
-        env_layout=parse_screen_layout_env_var_v2()
-    x_display=env_layout[position_index]['x_server']
+        layout=parse_screen_layout_env_var_v2()
+    x_display=layout[position_index]['x_server']
     outputs=get_connected_outputs(x_display=x_display)
     # the pos is a position on one x-server
     pos=0
     for j in range(position_index+1):
-        if env_layout[j]['x_server'] == x_display:
+        if layout[j]['x_server'] == x_display:
             for i in range(len(outputs)):
                     x=int(outputs[i]['pos'][0])
                     #print("pos_index:",j,"oup_pos:",x,'env_pos:',pos)
@@ -98,7 +98,7 @@ def get_connected_output_count_at_env_layout_index_v2(position_index,layout=None
                             return i , x_display
                         else:
                             return i
-            pos+=int(env_layout[j]['dim'][0])
+            pos+=int(layout[j]['dim'][0])
     # if not found
     return None
 
