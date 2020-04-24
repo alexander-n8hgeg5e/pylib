@@ -297,4 +297,4 @@ class ConditionRunThrottler():
 #    cpustats.update({'sum':_sum})
 #    return cpustats
 
-# vim: set foldlevel=1 foldmethod=indent foldnestmax=2 :
+# vim: set foldlevel=0 foldmethod=indent foldnestmax=2 :

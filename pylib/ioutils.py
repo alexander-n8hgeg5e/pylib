@@ -28,3 +28,18 @@ class AsyncLineReader():
         # delete what will be returned
         self.linebuffer=[]
         return retlines
+
+class AsyncLineReader_v2():
+    def __init__(self,filehandle_or_fileno):
+        from _io import _IOBase
+        if _IOBase.__subclasscheck__(type(filehandle_or_fileno)):
+            self.file   = filehandle_or_fileno
+            self.fileno = filehandle_or_fileno.raw.fileno()
+        elif type(filehandle_or_fileno) is int:
+            self.fileno = filehandle_or_fileeno
+            self.file   = open(filehandle_or_fileno)
+        set_blocking(self.fileno,False)
+        self.databuffer=b''
+        self.linebuffer=[]
+
+
