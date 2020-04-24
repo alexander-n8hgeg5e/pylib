@@ -3,10 +3,16 @@ from ..xutils import xrandr_utils,xdotool_utils
 from ..xutils.xrandr_utils import get_connected_outputs
 #from ..du import dd,d1,d0
 
-def get_current_screen():
-    d=get_current_desktop()
-
 def get_output_of_active_win(active_win_id):
+    """
+    deprecated
+    """
+    return get_output_of_win(active_win_id)
+
+def get_output_of_win(active_win_id=None):
+    if active_win_id is None:
+        active_win_id=xdotool_utils.get_active_win_id()
+
     active_win_geom =  xdotool_utils.get_win_geometry(active_win_id)
     outputs         =  xrandr_utils.get_connected_outputs()
 

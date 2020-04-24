@@ -1,10 +1,11 @@
 from pylib.du import dd
 from sys import stderr,stdout,modules
-from os import get_terminal_size
+from os import get_terminal_size,isatty
 from sys import stderr as sys_stderr,stdout as sys_stdout
 from subprocess import CalledProcessError,DEVNULL
 from pylib.syslog_utils import warn,err,info,log,WARN,ERR,INFO
     
+DEFAULT_MAXLEN=90
 
 class SubprocessVerbosityDecorator():
     kwargs= {
@@ -71,7 +72,10 @@ class SubprocessVerbosityDecorator():
                 end=" ... "
                 head="CMD: "
                 if verbose and shorten_msg=='tw':
-                    maxlen=get_terminal_size().columns - len(end) - len(head)
+                    if isatty(0):
+                        maxlen=get_terminal_size().columns - len(end) - len(head)
+                    else:
+                        maxlen=DEFAULT_MAXLEN - len(end) - len(head)
                     if len(msg) > maxlen:
                         msg=msg[:maxlen]
                 if verbose:
@@ -105,7 +109,10 @@ class VerbosityDecorator():
         head=self.msgprefix+" "
         end=" ... "
         if verbose and shorten_msg=='tw':
-            maxlen=get_terminal_size().columns - len(end) - len(head)
+            if isatty(0):
+                maxlen=get_terminal_size().columns - len(end) - len(head)
+            else:
+                maxlen=DEFAULT_MAXLEN-len(end)-len(head)
             if len(msg) > maxlen:
                 msg=msg[:maxlen]
         if verbose:

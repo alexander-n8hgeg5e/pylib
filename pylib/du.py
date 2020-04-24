@@ -14,15 +14,17 @@ file=stderr
 def d1(msg="# debugstate is True #",file=file):
     """enables the debug state"""
     global debugstate
+    oldstate=debugstate
     debugstate=True
-    if msg:
+    if debugstate != oldstate and not msg is None:
         print(msg,file=file)
 
 def d0(msg="# debugstate is False #",file=file):
     """disables the debug state"""
     global debugstate
+    oldstate=debugstate
     debugstate=False
-    if msg:
+    if debugstate != oldstate and not msg is None:
         print(msg,file=file)
 
 def dd(thing,file=file):
