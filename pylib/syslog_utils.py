@@ -8,6 +8,8 @@ DEBUG=log_facility+syslog.LOG_DEBUG
 
 def log(msg,level=INFO,end=""):
     end="" if end=="\n" else end
+    if not type(msg) is str:
+        msg=str(msg)
     syslog.syslog(level,msg+end)
 
 def info(msg):
