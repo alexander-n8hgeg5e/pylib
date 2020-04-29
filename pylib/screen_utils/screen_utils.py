@@ -174,4 +174,35 @@ def layout2xpos_v2(layout,index):
         pos+=int(layout[i]['dim'][0])
     return pos
 
+
+#########
+## v3  ##
+#########
+
+def env_screen_layout_2_region_layout_v3(layout=None,x_display=None):
+    """
+    assumes that regions are in proper order,
+    that means the lower regions are listed first
+    in the env-screen-layout env variable.
+    In v3 the regions 'pos' is relative
+    """
+    if layout is None:
+        layout=parse_screen_layout_env_var_v2()
+    if x_display is None:
+        x_display=parse_display_var()
+    
+    regions=[]
+
+    for screen in layout:
+        if screen['x_server'] == x_display:
+            # add to regions
+            regions.append(screen)
+
+    # this is added in v3
+    # make the regions 'pos' region relative
+    for i in range(len(regions)):
+        region_layout[i]['pos'] = (layout2xpos_v2( regions, i ),regions[i]['pos'][1])
+
+    return regions
+
 # vim: set foldmethod=indent foldlevel=0 foldnestmax=1 :
