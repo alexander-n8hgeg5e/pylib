@@ -1,6 +1,7 @@
 from .env import *
 from ..xutils import xrandr_utils,xdotool_utils
 from ..xutils.xrandr_utils import get_connected_outputs
+from copy import deepcopy
 #from ..du import dd,d1,d0
 
 def get_output_of_active_win(active_win_id):
@@ -136,6 +137,8 @@ def env_screen_layout_2_region_layout_v2(layout=None,x_display=None):
     """
     if layout is None:
         layout=parse_screen_layout_env_var_v2()
+    else:
+        layout=deepcopy(layout)
     if x_display is None:
         x_display=parse_display_var()
     
@@ -188,6 +191,8 @@ def env_screen_layout_2_region_layout_v3(layout=None,x_display=None):
     """
     if layout is None:
         layout=parse_screen_layout_env_var_v2()
+    else:
+        layout=deepcopy(layout)
     if x_display is None:
         x_display=parse_display_var()
     
@@ -201,7 +206,7 @@ def env_screen_layout_2_region_layout_v3(layout=None,x_display=None):
     # this is added in v3
     # make the regions 'pos' region relative
     for i in range(len(regions)):
-        region_layout[i]['pos'] = (layout2xpos_v2( regions, i ),regions[i]['pos'][1])
+        regions[i]['pos'] = (layout2xpos_v2( regions, i ),regions[i]['pos'][1])
 
     return regions
 
