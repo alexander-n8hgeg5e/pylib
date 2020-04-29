@@ -11,20 +11,20 @@ from traceback import format_tb
 debugstate=True
 file=stderr
 
-def d1(msg="# debugstate is True #",file=file):
+def d1(msg="# debugstate is True #",file=file,quiet=False):
     """enables the debug state"""
     global debugstate
     oldstate=debugstate
     debugstate=True
-    if debugstate != oldstate and not msg is None:
+    if not quiet and debugstate != oldstate and not msg is None:
         print(msg,file=file)
 
-def d0(msg="# debugstate is False #",file=file):
+def d0(msg="# debugstate is False #",file=file,quiet=False):
     """disables the debug state"""
     global debugstate
     oldstate=debugstate
     debugstate=False
-    if debugstate != oldstate and not msg is None:
+    if not quiet and debugstate != oldstate and not msg is None:
         print(msg,file=file)
 
 def dd(thing,file=file):
