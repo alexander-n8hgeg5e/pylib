@@ -26,7 +26,7 @@ def log_exp(level,e,with_traceback=True):
     if with_traceback:
         for line in format_tb(e.__traceback__):
             warn(line)
-    log("EXCEPTION: "+str(e),level=level)
+    log("EXCEPTION("+type(e).__name__+"): "+str(e),level=level)
 
 def warn_exp(e,with_traceback=False):
     log_exp(WARN,e,with_traceback=with_traceback)
