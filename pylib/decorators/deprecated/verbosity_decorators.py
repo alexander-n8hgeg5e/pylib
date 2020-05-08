@@ -109,7 +109,7 @@ class VerbosityDecorator():
         head=self.msgprefix+" "
         end=" ... "
         if verbose and shorten_msg=='tw':
-            if isatty(0):
+            if isatty(1):
                 maxlen=get_terminal_size().columns - len(end) - len(head)
             else:
                 maxlen=DEFAULT_MAXLEN-len(end)-len(head)
@@ -125,6 +125,7 @@ class Subprocess_call_VerbosityDecorator(VerbosityDecorator):
     def _post_(self,*z,verbose=True,stdout=DEVNULL,stderr=DEVNULL,**zz):
         retval=self.f(*z,stdout=stdout,stderr=stderr,**zz)
         if verbose:
+            #msg=self.verbose_msg + ("SUCCESS" if retval==0 else "FAILED")
             msg=self.verbose_msg + ("SUCCESS" if retval==0 else "FAILED")
             log( msg , level=INFO)
         return(retval)
@@ -153,4 +154,60 @@ class Subprocess_check_output_VerbosityDecorator(VerbosityDecorator):
 class Subprocess_check_call_VerbosityDecorator(Subprocess_check_output_VerbosityDecorator):
     pass
 
-# vim: foldmethod=indent foldlevel=0 :
+class VerbosityDecorator_v2():
+    msgprefix=""
+
+    def __init__(self,f,loglevel=INFO):
+        self.f=f
+        self.loglevel=loglevel
+
+    def __call__(self,*z,shorten_msg='tw',verbose=True,msg=None,stdout=DEVNULL,stderr=DEVNULL,**zz):
+        return self._post_(*z,shorten_msg=shorten_msg,msg=msg,verbose=verbose,stdout=stdout,stderr=stderr,**zz)
+
+    def _get_msg0_(self,*z,shorten_msg='tw',verbose=True,msg=None,result='unknown result',**zz):
+        if not verbose:
+            return
+        if msg is None:
+            msg = "CMD "+result+": "+str(z)
+        head=self.msgprefix+" "
+        if shorten_msg=='tw':
+            if isatty(1):
+                maxlen=get_terminal_size().columns - len(head)
+            else:
+                maxlen=DEFAULT_MAXLEN-len(head)
+            if len(msg) > maxlen:
+                msg=msg[:maxlen]
+        return head+msg
+
+    def _post_(self,*z,stdout=DEVNULL,stderr=DEVNULL,**zz):
+        self.f(*z,stdout=stdout,stderr=stderr,**zz)
+
+class Subprocess_call_VerbosityDecorator_v2(VerbosityDecorator_v2):
+    def _post_(self,*z,verbose=True,shorten_msg="tw",msg=None,**zz):
+        retval=self.f(*z,**zz)
+        if verbose:
+            result=("SUCCESS" if retval==0 else "FAILED")
+            msg=self._get_msg0_(*z,msg=msg,verbose=verbose,result=result,**zz) 
+            log( msg , level=self.loglevel)
+        return(retval)
+
+class Subprocess_check_output_VerbosityDecorator_v2(VerbosityDecorator_v2):
+    def _post_(self,*z,verbose=True,shorten_msg="tw",stdout="not allowed",msg=None,**zz):
+        if verbose:
+            exc=None
+            try:
+                retval=self.f(*z,**zz)
+                result="SUCCESS"
+            except Exception as e:
+                result="FAILED"
+                exc=e
+            msg=self._get_msg0_(*z,msg=msg,verbose=verbose,result=result,**zz) 
+            log( msg , level=self.loglevel)
+            if not exc is None:
+                raise exc
+        return retval
+
+class Subprocess_check_call_VerbosityDecorator_v2(Subprocess_check_output_VerbosityDecorator_v2):
+    pass
+
+# vim: foldmethod=indent foldlevel=0 foldnestmax=2:

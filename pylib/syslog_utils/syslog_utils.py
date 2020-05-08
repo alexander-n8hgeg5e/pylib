@@ -1,0 +1,32 @@
+import syslog
+log_facility = syslog.LOG_USER
+INFO=log_facility+syslog.LOG_INFO
+WARN=log_facility+syslog.LOG_WARNING
+ERR=log_facility+syslog.LOG_ERR
+DEBUG=log_facility+syslog.LOG_DEBUG
+
+
+def log(msg,level=INFO,end=""):
+    end="" if end=="\n" else end
+    if not type(msg) is str:
+        msg=str(msg)
+    syslog.syslog(level,msg+end)
+
+def info(msg):
+    log(msg,level=INFO)
+def warn(msg):
+    log(msg,level=WARN)
+def err(msg):
+    log(msg,level=ERR)
+def debug(msg):
+    log(msg,level=DEBUG)
+
+def log_exp(level,e,with_traceback=True):
+    from traceback import format_tb
+    if with_traceback:
+        for line in format_tb(e.__traceback__):
+            warn(line)
+    log("EXCEPTION("+type(e).__name__+"): "+str(e),level=level)
+
+def warn_exp(e,with_traceback=True):
+    log_exp(WARN,e,with_traceback=with_traceback)
