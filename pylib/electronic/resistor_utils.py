@@ -26,3 +26,16 @@ def resistor_string_to_float(s,enable_mult=False):
     else:
         s=float(s)
     return s
+
+def flatten_thing(thing):
+    cls=thing.__class__
+    flat=cls()
+    for v in thing:
+        if is_iterable(v):
+            flat+=cls(v)
+        else:
+            flat.append(v)
+    return flat
+
+def is_iterable(thing):
+    return hasattr(thing,'__iter__')
