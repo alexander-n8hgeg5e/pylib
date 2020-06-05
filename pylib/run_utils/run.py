@@ -1,4 +1,4 @@
-from subprocess import Popen
+from subprocess import Popen,check_call
 from signal import SIGCONT,SIGSTOP
 from time import sleep
 from sys import stderr
