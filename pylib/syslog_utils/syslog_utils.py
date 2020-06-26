@@ -1,16 +1,15 @@
 import syslog
-log_facility = syslog.LOG_USER
-INFO=log_facility+syslog.LOG_INFO
-WARN=log_facility+syslog.LOG_WARNING
-ERR=log_facility+syslog.LOG_ERR
-DEBUG=log_facility+syslog.LOG_DEBUG
+ERR   =  syslog.LOG_ERR
+WARN  =  syslog.LOG_WARNING
+INFO  =  syslog.LOG_INFO
+DEBUG =  syslog.LOG_DEBUG
 
 
-def log(msg,level=INFO,end=""):
+def log(msg,level=syslog.LOG_INFO, facility=syslog.LOG_USER, end=""):
     end="" if end=="\n" else end
     if not type(msg) is str:
         msg=str(msg)
-    syslog.syslog(level,msg+end)
+    syslog.syslog(level|facility,msg+end)
 
 def info(msg):
     log(msg,level=INFO)
