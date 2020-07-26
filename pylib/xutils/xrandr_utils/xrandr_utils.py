@@ -76,8 +76,6 @@ def get_connected_outputs_x_sorted(x_display=None):
     outp.sort(key=lambda outp: outp['pos'][0])
     return outp
 
-        
-
 def __prepare_lines(outp):
     """
     does nothing useful yet
@@ -182,3 +180,5 @@ def outp_is_right_of_outp(outp1,outp2):
     pos1=outp1['pos'][0]
     pos2=outp2['pos'][0]
     return pos1 < pos2
+
+# vim: set foldmethod=indent foldlevel=0 foldnestmax=1 :
