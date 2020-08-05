@@ -12,3 +12,9 @@ def equalize_lists(lists):
         equal_lists.append(l)
     return equal_lists
     
+def uniq(l):
+    r=[]
+    for thing in l:
+        if not thing in r:
+            r.append(thing)
+    return r

@@ -358,4 +358,41 @@ class PassThroughArgumentParser(ArgumentParser):
         print()
         call(self.wrapped_cmd+['-h'])
 
+def get_argparse_code( nvim_or_None, return_string=False):
+    """
+    generate argument parser code
+    """
+    code=[]
+    code.append('def parse_args():')
+    code.append('    from argparse import ArgumentParser'                                                     )    
+    code.append('    ap=ArgumentParser(description="")'                                                       )    
+    code.append('    #ap.add_argument("-v", "--verbose", action="store_true", help="enable verbose mode" )'   )    
+    code.append('    #ap.add_argument("-v", action="count", --help="increase verbosity" )'                    )    
+    code.append('    #ap.add_argument("-D", "--debug", action="store_true", --help="enable debug mode" )'     )    
+    code.append('    #ap.add_argument("-D", action="count", --help="debug level verbosity" )'                 )    
+    code.append('    #ap.add_argument('                                                                       )        
+    code.append('    #               "-m", "--multi" , nargs=2 ,  type=int, default=[5,3],'                   )      
+    code.append('    #               metavar=["name0","name1"], help="")'                                     )             
+    code.append('    #               )'                                                                       )         
+    code.append('    #ap.add_argument('                                                                       )           
+    code.append('    #               "-s", "--single", type=str, default="abc",'                              )         
+    code.append('    #               metavar=["name0","name1"], help="",'                                     )          
+    code.append('    #               )'                                                                       )          
+    code.append('    #ap.add_argument('                                                                       )                           
+    code.append('    #               dest="some", type=str, default="abc", nargs="*",'                        )        
+    code.append('    #               metavar=["name0","name1"], help="",'                                     )     
+    code.append('    #               )'                                                                       ) 
+    code.append('    #global args'                                                                            ) 
+    code.append('    args=ap.parse_args()'                                                                    ) 
+    code.append('    return args'                                                                             ) 
+    
+
+    if return_string:
+        return "\n".join(code)
+    elif nvim_or_None is None:
+            return code
+    else:
+        nvim_or_None.call( 'nvim_put', code , 'l' , 1 , 0) 
+
+
 # vim: foldmethod=indent foldlevel=0 foldnestmax=2:
