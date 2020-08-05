@@ -64,3 +64,26 @@ def ftb_list(e):
 def ftb(e):
     return "\n".join(ftb_list(e))
 
+
+from collections import OrderedDict as Od
+def ddd(thing):
+    stack = traceback.extract_stack()
+    for s in stack:
+        filename, lineno, function_name, code = s
+        if filename == '/var/src/conkyconfpy/conkyconfpy.py':
+            d = Od  (
+                        {
+                        'lineno'           : lineno  ,
+                        'function_name'    : function_name,
+                        'code'             : code,
+                        }
+                    )
+            pprint(d)
+
+
+def dddd(thing):
+    stack = traceback.extract_stack().extract(0)
+    print(dir(stack[-1]))
+    help(traceback.walk_stack)
+    for s in traceback.walk_stack(stack[-1]):
+        pprint(s)
