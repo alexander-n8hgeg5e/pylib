@@ -1,4 +1,8 @@
 from re import sub
+from functools import reduce
+from pylib.syslog_utils import err
+from pprint import pformat
+from traceback import format_tb
 
 def update_nested_dict(d1, d2):
     """
@@ -28,3 +32,28 @@ def update_nested_dict(d1, d2):
         return d1
     else:
         return d1
+
+def get_item_from(thing, mapList):
+    return reduce(get_from, mapList, thing)
+
+def set_item_in(thing, mapList, value):
+    set_in(get_from( get_item_from( thing, mapList[:-1]), mapList[-1] ),mapList[-1],value)
+
+def get_from( thing, what ):
+    if hasattr(thing,'__dict__'):
+        return(thing.__dict__[what])
+    elif hasattr(thing,'__getitem__'):
+        #print(thing,what)
+        try:
+            return thing[what]
+        except KeyError as e:
+            err("WARNING: KeyError: Key: "+pformat(what)+"\nException:"+str(e)+"\n"+"\n".join(format_tb(e.__traceback__))+"\nDict: "+ pformat(thing))
+            raise e
+
+def set_in(thing, what ,val):
+    if hasattr(thing,'__setattribute__'):
+        thing.__setattribute__(what,val)
+    elif hasattr(thing,'__setitem__'):
+        thing[what]=val
+    else:
+        raise Exception("missing __setattribute__ or __setitem__ in "+thing.__repr__())

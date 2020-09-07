@@ -7,6 +7,7 @@ from re import compile
 from pprint import pprint
 from shutil import get_terminal_size
 from traceback import format_tb
+from os.path import basename
 
 debugstate=True
 file=stderr
@@ -82,8 +83,9 @@ def ddd(thing):
 
 
 def dddd(thing):
-    stack = traceback.extract_stack().extract(0)
-    print(dir(stack[-1]))
-    help(traceback.walk_stack)
-    for s in traceback.walk_stack(stack[-1]):
-        pprint(s)
+    stack = traceback.extract_stack(limit=10)
+    for i in range(0,min(10,len(stack))):
+        sf = stack[-i-1]
+        filename = basename(sf.filename[max(-8, - len(sf.filename) - 1):])
+        name     = sf.name[max(-8, - len(sf.name) - 1):]
+        print("trbk[{}][{:8}][{:8}][{:4}]={}".format(i,filename,name,sf.lineno,sf.line))
