@@ -51,8 +51,8 @@ class IndentationParser():
         thing.append([data.strip()])
     
     def _get_level(self,depth,line):
-        if line.find(b"Name:") != -1 or line.find(b"Argument:") != -1:
-            print('d={} , line={}'.format(depth,line))
+        #if line.find(b"Name:") != -1 or line.find(b"Argument:") != -1:
+        #    print('d={} , line={}'.format(depth,line))
         deepest = self._get_deepest_level()
         for i in range(deepest + 1):
             if self.levels[i] == depth:
