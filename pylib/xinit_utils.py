@@ -17,9 +17,9 @@ class XinitError(Exception):
 
     def log(self,with_traceback=True):
         from traceback import format_tb
-        tb=format_tb(self.__stacktrace__)
-        msg=self.msg + (("\n"+ tb) if with_traceback else "")
-        err(gen_msg(msg))
+        tb = "\n".join(format_tb(self.__traceback__))
+        msg=str(self) + (("\n"+ tb) if with_traceback else "")
+        err(type(self).gen_msg(msg))
 
 class Timeout(Exception):
     pass
@@ -145,7 +145,9 @@ def do_check_with_timeout(timeout,cmd,confirmfunc):
 def is_skyscraper_online(timeout=60):
     cmds=[['sudo','rc-service','skyscraper','status']]
     cmds+= [['ssh','root@skyscraper','uptime']]
-    rc_status   = call(cmds[0],stdout=stdout,stderr=stderr,timeout=int(timeout/2),loglevel=DEBUG)
+    # rc_status   = call(cmds[0],stdout=stdout,stderr=stderr,timeout=int(timeout/2),loglevel=DEBUG)
+    # until rc-system is fixed set to 0
+    rc_status   =  0
     if rc_status == 0:
         ssh_uptime = call(cmds[1],stdout=stdout,stderr=stderr,timeout=int(timeout/2),loglevel=DEBUG)
         if ssh_uptime == 0:
@@ -162,7 +164,7 @@ def is_skyscraper_online(timeout=60):
         return False
 
 def start_restart_skyscraper(timeout=240):
-    restartcmd=[ 'sudo', 'rc-service', 'skyscraper', 'restart']
+    restartcmd=[ 'sudo', 'rc-service', 'cluster_esadc_skyscraper', 'restart']
     run_check_cmd_with_timeout( timeout ,restartcmd, is_skyscraper_online)
 
 def prepare_skyscraper(timeoutmult=1,stop_running_xserver=True):
