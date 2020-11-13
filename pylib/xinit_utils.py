@@ -40,7 +40,7 @@ class SkyscraperNotAwakeError(SkyscraperError):
             super().__init__(self.gen_msg("skyscraper seems down and could not be awaken"),**zz)
 
 def get_xpids(timeout=10):
-    cmd = [ 'ssh', 'root@skyscraper', 'ps', '-p','1','-C', 'X', '--no-headers', '-o', 'pid']
+    cmd = [ 'ssh', 'root@skyscraper', 'ps', '-p','1','-C', 'X', '-C', 'Xorg', '--no-headers', '-o', 'pid']
     cmd_ssh_pipe_stop = [ 'ssh', '-O', 'exit', 'root@skyscraper' ]
     t0 = time()
     try:
