@@ -190,7 +190,7 @@ def env_screen_layout_2_region_layout_v3(layout=None,x_display=None):
     In v3 the regions 'pos' is relative
     """
     if layout is None:
-        layout=parse_screen_layout_env_var_v2()
+        layout=parse_screen_layout_env_var_v3()
     else:
         layout=deepcopy(layout)
     if x_display is None:
