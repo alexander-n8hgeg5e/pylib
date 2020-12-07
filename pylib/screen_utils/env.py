@@ -1,4 +1,5 @@
 from os import environ
+from re import subn
 
 def parse_display_var():
     d=environ['DISPLAY']
@@ -42,6 +43,10 @@ def parse_screen_layout_env_var_v2():
 
 def parse_screen_layout_env_var_v3():
     v=environ['screen_layout_v2']
+    v,n=subn("\s","",v) # 
+    if n>0:
+        from warning import warn
+        warn("\"screen_layout_v2\" env var contains invalid characters. Removed these charactes")
     screens=v.split('##')
     screen_layout=[]
     for screen in screens:
