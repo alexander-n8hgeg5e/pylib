@@ -210,5 +210,20 @@ def env_screen_layout_2_region_layout_v3(layout=None,x_display=None):
 
     return regions
 
+def layout2displaynr(layout=None):
+    """converts the screen layout as returned from parse_screen_layout_env_var_v3
+       to the display number counted in the order they appear in the env var.
+    """
+    if layout is None:
+        layout=parse_screen_layout_env_var_v3()
+    x_displays=[]
+    l=[]
+    for thing in layout:
+        if not thing["x_server"] in x_displays:
+            l.append(len(x_displays))
+            x_displays.append(thing["x_server"])
+        else:
+            l.append(x_displays.index(thing['x_server']))
+    return l
 
 # vim: set foldmethod=indent foldlevel=0 foldnestmax=1 :

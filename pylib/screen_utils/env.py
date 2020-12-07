@@ -1,8 +1,11 @@
 from os import environ
 from re import subn
 
-def parse_display_var():
-    d=environ['DISPLAY']
+def parse_display_var(val=None):
+    if val is None:
+        d=environ['DISPLAY']
+    else:
+        d=val
     server,screen= d.split(":")
     if server.strip()=="":
         server=environ["hostnamE"]
