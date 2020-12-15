@@ -3,6 +3,7 @@ from functools import reduce
 from pylib.syslog_utils import err
 from pprint import pformat
 from traceback import format_tb
+from collections import OrderedDict
 
 def update_nested_dict(d1, d2):
     """
@@ -57,3 +58,35 @@ def set_in(thing, what ,val):
         thing[what]=val
     else:
         raise Exception("missing __setattribute__ or __setitem__ in "+thing.__repr__())
+
+def format(d,dict_format):
+    #for k,v in d.items():
+    #    if k.find("enable") != -1:
+    #        print("k={},type(k)={}, v={},type(v)={}".format(k,type(k),v,type(v)))
+    lines=[]
+    for line_format in [lf for lf in dict_format.split("\n")]:
+        try:
+            line_format_dict_prep=sub("{",'"{',line_format)
+            line_format_dict_prep=sub("}",'}"',line_format_dict_prep)
+            line_format_dict = eval("OrderedDict({" +line_format_dict_prep+ "})")
+            #print(line_format_dict.items())
+            values=[]
+            for k in line_format_dict.keys():
+                values.append(d[k])
+            try:
+                lines.append(line_format.format(*values))
+            except ValueError as e:
+                from sys import stderr
+                print(e)
+                print("ERROR:",line_format,file=stderr)
+            except IndexError as e:
+                from sys import stderr
+                pprint(line)
+                print(e)
+                print("ERROR:",line_format,file=stderr)
+        except Exception as e:
+            if type(e) in [ValueError,SyntaxError]:
+                lines.append(line_format)
+                continue
+    return lines
+
