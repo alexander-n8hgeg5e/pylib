@@ -23,17 +23,14 @@ def write(d,path=".",max_data_len=64,silent_skip=False):
 
 def read(path=".",regex=".*",max_data_len=64,silent_skip=False ,nostrip=False,noconv=False):
 
-    print("regex=",regex)
-    if regex != 'slot_1':
-        raise Exception()
     dirlist=listdir(path)
     l=[]
     data={}
     for thing in dirlist:
-        if isfile(path+"/"+thing) and match(regex,thing):
+        if isfile(path+"/"+thing) and match(regex,path+"/"+thing):
             l.append(thing)
-        elif isdir(path+"/"+thing):
-            data.update( { thing : read( path=path + "/" + thing )},regex=regex,max_data_len=max_data_len,silent_skip=silent_skip,noconv=noconv,nostrip=nostrip)
+        elif isdir(path+"/"+thing) and match(regex,path+"/"+thing):
+            data.update( { thing : read( path=path + "/" + thing ,regex=regex,max_data_len=max_data_len,silent_skip=silent_skip,noconv=noconv,nostrip=nostrip)})
     l.sort()
     for k in l:
         with open(path+"/"+k) as f:
