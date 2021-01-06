@@ -90,3 +90,46 @@ def format(d,dict_format):
                 continue
     return lines
 
+def flatten_nested_dict_values(d):
+    dict_types=(dict,OrderedDict)
+    l=[]
+    ll=[]
+    for v in d.values():
+        if type(v) in dict_types:
+            ll.append(v)
+        else:
+            l.append(v)
+
+    while len(ll) > 0:
+        d=ll.pop()
+        for v in d.values():
+            if type(v) in dict_types:
+                ll.append(v)
+            else:
+                l.append(v)
+    return l
+
+from re import search,match
+def format_v2( d, dict_format ):
+    spans=[]
+    search_for = '(["].*["]\s*[:]\s*["].*["]|(["].*["]|[\'].*[\']))\s*[:]\s*["][^{]*[{].*[}][^}]*["]'
+    m = search(search_for, dict_format)
+    start=0
+    while m:
+        print(m)
+        spans.append([i+start for i in m.span()])
+        start += m.span()[1]
+        m = search(search_for, dict_format[start:])
+
+    for span in spans:
+        s0=dict_format[:span[0]]
+        s1 = dict_format[span[0]:span[1]]
+        print(s1,v)
+        s1.format(v)
+        s2=dict_format[span[1]:]
+        dict_format=s0+s1+s2
+        #print(f"pos span[1] {span[1]}={dict_format[span[1]]}")
+        #print(f"at pos {span[0]}:{span[1]} {dict_format[span[0]:span[1]]}")
+        #if not match(search_for,dict_format[span[0]:span[1]]):
+        #    raise Exception()
+    return dict_format 
