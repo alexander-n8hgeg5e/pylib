@@ -14,6 +14,21 @@ def parse_display_var(val=None):
         server=gethostname()
     return (server+":"+screen).strip()
 
+def parse_display_var_v2(val=None):
+    if val is None:
+        d=environ['DISPLAY']
+    else:
+        d=val
+    server,screen= d.split(":")
+    if server.strip()=="":
+        server=environ["hostnamE"]
+    if server.strip()=="":
+        from server import gethostname
+        server=gethostname()
+    server=server.strip()
+    screen=screen.strip()
+    return { 'host' : server, 'screen' : screen } 
+
 def parse_screen_layout_env_var():
     v=environ['screen_layout']
     screens=v.split('##')
