@@ -33,3 +33,12 @@ def log_exp(level,e,with_traceback=True,log2stderr=False):
 
 def warn_exp(e,with_traceback=True,log2stderr=False):
     log_exp(WARN,e,with_traceback=with_traceback,log2stderr=log2stderr)
+
+def format_exp(e,with_traceback=True):
+    txt=''
+    from traceback import format_tb
+    if with_traceback:
+        for line in format_tb(e.__traceback__):
+            txt+=line+"\n"
+    txt+="EXCEPTION("+type(e).__name__+"): "+str(e)
+    return txt
