@@ -15,11 +15,11 @@ class XinitError(Exception):
         footerline=headline
         return "\n"+headline+"\n"+msgline+"\n"+footerline
 
-    def log(self,with_traceback=True):
+    def log(self,with_traceback=True, log2stderr = True):
         from traceback import format_tb
         tb = "\n".join(format_tb(self.__traceback__))
         msg=str(self) + (("\n"+ tb) if with_traceback else "")
-        err(type(self).gen_msg(msg))
+        err(type(self).gen_msg(msg),log2stderr=log2stderr)
 
 class Timeout(Exception):
     pass

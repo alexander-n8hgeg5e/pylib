@@ -24,15 +24,15 @@ def _get_msg0_(*z,shorten_msg='tw',verbose=True,msg=None,result='unknown result'
             msg=msg[:maxlen]
     return head+msg
 
-def call(*z,shorten_msg='tw',verbose=True,msg=None,stdout=DEVNULL,stderr=DEVNULL,loglevel=INFO,**zz):
+def call(*z,shorten_msg='tw',verbose=True,msg=None,stdout=DEVNULL,stderr=DEVNULL,loglevel=INFO,log2stderr=False,**zz):
     retval=subprocess_call(*z,stdout=stdout,stderr=stderr,**zz)
     if verbose:
         result=("SUCCESS" if retval==0 else "FAILED")
         msg=_get_msg0_(*z,msg=msg,verbose=verbose,result=result,**zz) 
-        log( msg , level=loglevel)
+        log( msg , level=loglevel,log2stderr=log2stderr)
     return(retval)
 
-def check_func(*z,func=None,verbose=True,shorten_msg="tw",stdout="not allowed",loglevel=INFO,msg=None,**zz):
+def check_func(*z,func=None,verbose=True,shorten_msg="tw",stdout="not allowed",loglevel=INFO,msg=None,log2stderr=False,**zz):
     if verbose:
         exc=None
         try:
@@ -42,7 +42,7 @@ def check_func(*z,func=None,verbose=True,shorten_msg="tw",stdout="not allowed",l
             result="FAILED"
             exc=e
         msg=_get_msg0_(*z,msg=msg,verbose=verbose,result=result,**zz) 
-        log( msg , level=loglevel)
+        log( msg , level=loglevel,log2stderr=log2stderr)
         if not exc is None:
             raise exc
     return retval
@@ -54,7 +54,7 @@ def check_output(*z,**zz):
     return check_func(*z,func=subprocess_check_output,**zz)
 
 class Popen(subprocess_Popen):
-    def __init__(self,*z,stdout=DEVNULL,stderr=DEVNULL,verbose=True,loglevel=INFO,msg=None,**zz):
+    def __init__(self,*z,stdout=DEVNULL,stderr=DEVNULL,verbose=True,loglevel=INFO,msg=None,log2stderr=False,**zz):
         if verbose:
-            log(_get_msg0_(msg=("BGRND: "+str(z)) if msg is None else msg,verbose=verbose,result=""),level=INFO)
+            log(_get_msg0_(msg=("BGRND: "+str(z)) if msg is None else msg,verbose=verbose,result="",log2stderr=stderr),level=INFO)
         super().__init__(*z,stdout=stdout,stderr=stderr,**zz)
