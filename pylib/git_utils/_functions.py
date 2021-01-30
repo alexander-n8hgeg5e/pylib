@@ -100,13 +100,13 @@ def unpack_packs(gitdirs,verbose=False):
         # check if everything as expected
         if abspath(gitdir) != gitdir:
             raise Exception("not as programmer expected, need check")
-    
+
         # create extra dir for the packs
         extra_dir=gitdir+psep+EXTRA_DIR_NAME
         proper_pack_dir=gitdir+psep+"objects"+psep+"pack"
         makedirs(extra_dir,exist_ok=True)
         packs=find_git_pack_pathes(gitdir)
-    
+
         # mv only packs from the proper pack dir
         packs_ok=[]
         packs_not_ok=[]
@@ -118,20 +118,20 @@ def unpack_packs(gitdirs,verbose=False):
             else:
                 packs_not_ok.append(pack)
         packs=packs_ok
-    
+
         # now got ok packs that are inside gitdir/packs
         for pack in packs:
             pack_bn = basename(pack)
             new_pack_path     = extra_dir+psep+pack_bn
             rename(pack, new_pack_path)
-    
+
             # also move the pack's index file
             idx = pack[:-4]+"idx"
             if exists(idx):
                 idx_bn  = basename(idx)
                 new_idx_path = extra_dir+psep+idx_bn
                 rename(idx , new_idx_path)
-    
+
         # not ok packs are packs that are most likely
         # already inside the "extra-dir"
         # check if the corresponding idx file also was moved,
@@ -147,7 +147,7 @@ def unpack_packs(gitdirs,verbose=False):
             if exists(idx):
                 # move it
                 rename(idx,idx_new)
-        
+
         #-------------#
         #  unpacking  #
         #-------------#
@@ -161,15 +161,15 @@ def unpack_packs(gitdirs,verbose=False):
         if not ok:
             raise Exception("""ERROR: expected no packs inside the pack dir.
             Could not move the packs or something other went wrong.""")
-    
-    
+
+
         # get pack list
         packs2unpack=[]
         dirlist = listdir(extra_dir)
         for p in dirlist:
             if p[-5:]==".pack":
                 packs2unpack.append(extra_dir+psep+p)
-        
+
         # Now read the pack data and
         # and feed it into the "git unpack-objects" cmd.
         for pack in packs2unpack:
@@ -181,16 +181,16 @@ def unpack_packs(gitdirs,verbose=False):
             p=Popen(cmd,stdin=PIPE)
             p.stdin.write(data)
             p.wait()
-    
+
         # move the packs back
-        # I ran git gc and  
+        # I ran git gc and
         # git removed the redundant packs.
         # Because git knows what is does,
         # git is the right program for the task.
         for pack in packs2unpack:
             idx  = pack[:-4]+"idx"
             pack_bn = basename(pack)
-            idx_bn  = basename(idx) 
+            idx_bn  = basename(idx)
             idx_new  = proper_pack_dir+psep+idx_bn
             pack_new = proper_pack_dir+psep+pack_bn
             rename(pack, pack_new)
