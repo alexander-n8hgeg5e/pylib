@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2019 Alexander Wilhelmi
+# Copyright 2019-2021 Alexander Wilhelmi
 # This file is part of pylib.
 # 
 # pylib is free software: you can redistribute it and/or modify

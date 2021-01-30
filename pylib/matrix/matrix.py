@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright 2019 Alexander Wilhelmi
+# Copyright 2019-2021 Alexander Wilhelmi
 # This file is part of pylib.
 # 
 # pylib is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 # 
 # Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 # Programm erhalten haben. Wenn nicht, siehe <https://www.gnu.org/licenses/>.
-# Copyright 2019 Alexander Wilhelmi
+# Copyright 2019-2021 Alexander Wilhelmi
 # This file is part of pylib.
 # 
 # pylib is free software: you can redistribute it and/or modify
