@@ -21,7 +21,7 @@ class IndentationParser():
         elif type(data) is bytes:
             self.lines = data.split(linesep.encode())
         else:
-            raise Exception(TypeError("Type {} not supported".format(type(lines))))
+            raise Exception(TypeError("Type {} not supported".format(type(data))))
         self.levels  = []
         self.data    = []
 
@@ -46,9 +46,9 @@ class IndentationParser():
             if type(thing[-1]) is list:
                 thing = thing[-1]
             else:
-                thing[-1] = []
+                thing.append([])
                 thing = thing[-1]
-        thing.append([data.strip()])
+        thing.append(data.strip())
     
     def _get_level(self,depth,line):
         #if line.find(b"Name:") != -1 or line.find(b"Argument:") != -1:
