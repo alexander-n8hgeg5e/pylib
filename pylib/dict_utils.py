@@ -34,6 +34,43 @@ def update_nested_dict(d1, d2):
     else:
         return d1
 
+def update_nested_dict_v2(d1, d2):
+    """
+    Updates d1 with d2.
+    Allow to a dict exist together with other things
+    at the same place inside a list.
+    A list will be considered a endpoint/leaf
+    if the list does not contain any dictionaries.
+    The other case is like an directory that has
+    unnamed files and named files.
+    """
+    if len(d2) > 0:
+        d1keys=d1.keys()
+        for k2 in d2.keys():
+            def do():
+                d1[k2]=d2[k2]
+            if k2 in d1keys:
+                if type(d1[k2]) is dict and type(d2[k2]) is dict:
+                    # Key points to 2 dicts, need to go deeper.
+                    d1[k2] = update_nested_dict(d1[k2] , d2[k2] )
+                elif type(d2[k2]) is dict():
+                    # Update existing key in d1 with a dict.
+                    # The dict wins over other datatypes here.
+                    do()
+                else:
+                    pass
+                    # Don't overwrite a dict,
+                    # but allow the other thing to
+                    # exist together with the dict.
+                    
+            else:
+                # Because key is not in d1,
+                # there is no doubt that "do" is the right choice. 
+                do()
+        return d1
+    else:
+        return d1
+
 def get_item_from(thing, mapList):
     return reduce(get_from, mapList, thing)
 
@@ -107,6 +144,26 @@ def flatten_nested_dict_values(d):
                 ll.append(v)
             else:
                 l.append(v)
+    return l
+
+def flatten_nested_dict_values_v2(d):
+    dict_types=(dict,OrderedDict)
+    l=[]
+    ll=[]
+    for k,v in d.items():
+        if type(v) in dict_types:
+            ll.append([k,v])
+        else:
+            # add to finished product storage
+            l.append([k,v])
+
+    while len(ll) > 0:
+        d=ll.pop()
+        for k,v in d[-1].items():
+            if type(v) in dict_types:
+                ll.append(d[:-1]+[k,v])
+            else:
+                l.append(d[:-1]+[k,v])
     return l
 
 from re import search,match
