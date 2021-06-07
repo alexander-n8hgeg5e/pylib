@@ -1,5 +1,7 @@
 from os import environ
 from re import subn
+from socket import gethostname
+from re import subn
 
 def parse_display_var(val=None):
     if val is None:
@@ -28,6 +30,26 @@ def parse_display_var_v2(val=None):
     server=server.strip()
     screen=screen.strip()
     return { 'host' : server, 'screen' : screen } 
+
+def parse_display_var_v3(val=None):
+    """
+    Returns the most complete display string that
+    can be infered.
+    """
+    if val is None:
+        d=environ['DISPLAY']
+    else:
+        d=val
+    server,screen = d.split(":")
+    if server.strip()=="":
+        if ["hostnameE"] in environ.keys():
+            server = environ["hostnamE"]
+        else:
+            server = gethostname()
+    server=server.strip()
+    screen=screen.strip()
+    screen = f"{float(screen)}"
+    return f"{server}:{screen}" 
 
 def parse_screen_layout_env_var():
     v=environ['screen_layout']
