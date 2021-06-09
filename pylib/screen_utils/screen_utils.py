@@ -311,7 +311,7 @@ def env_screen_layout_2_region_layout_v3(layout=None,x_display=None):
     else:
         layout=deepcopy(layout)
     if x_display is None:
-        x_display=parse_display_var()
+        x_display=parse_display_var_v3()
     
     regions=[]
 
