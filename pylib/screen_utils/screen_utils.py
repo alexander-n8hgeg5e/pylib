@@ -31,6 +31,123 @@ def get_output_of_win(active_win_id=None):
                 best_outp = o
     return best_outp
 
+def print_win_tree(win_id,display=None):
+    from Xlib.display import Display
+    if display is None:
+        d = Display()
+    else:
+        d = Display(display)
+    root=d.screen().root
+    child_windows = root.query_tree()._data['children']
+    found = None
+    done = False
+    while not done:
+        done = True
+        for cw in child_windows:
+            if cw.id == win_id:
+                found=cw
+                break
+            else:
+                add_child_windows = cw.query_tree()._data['children']
+                added=False
+                for child_window in add_child_windows:
+                    if not child_window in child_windows:
+                        child_windows.append(child_window)
+                        added=True
+                if added:
+                    done = False
+        if not found is None:
+            break
+    if found is None:
+        raise Exception(f"No window found with the requested id: {win_id}")
+
+    stack=[]
+    def stack_geom(win,name,indent=""):
+        geom = win.get_geometry()._data
+        wm_name = win.get_wm_name()
+        wm_class = win.get_wm_class()
+        x=geom['x']
+        y=geom['y']
+        w=geom['width']
+        h=geom['height']
+        stack.append(indent+f"{name} : {x}+{y} {w}x{h} wm_name=\"{wm_name}\", wm_class=\"{wm_class}\"")
+    stack_geom(found,win_id)
+    parent_of = found
+    indent=""
+    while True:
+        parent = parent_of.query_tree()._data['parent']
+        if not parent == 0 :
+            stack.append(indent+f"\\")
+            parent_of = parent
+            indent+=" "
+            try:
+                stack_geom(parent,parent.id,indent)
+            except AttributeError:
+                stack.append(parent,type(parent))
+                raise
+        elif parent == 0:
+            stack.append(indent+f"{parent_of.id} is the ROOT window")
+            break
+    stack.reverse()
+    il=len(indent)
+    for thing in stack:
+        n=0
+        while thing[0] == " ":
+            n += 1
+            thing = thing[1:]
+        print((il-n)*" "+thing)
+
+def get_geom_of_win(win_id,display=None):
+    from Xlib.display import Display
+    if display is None:
+        d = Display()
+    else:
+        d = Display(display)
+    root=d.screen().root
+    child_windows = root.query_tree()._data['children']
+    found = None
+    done = False
+    while not done:
+        done = True
+        for cw in child_windows:
+            if cw.id == win_id:
+                found=cw
+                break
+            else:
+                add_child_windows = cw.query_tree()._data['children']
+                added=False
+                for child_window in add_child_windows:
+                    if not child_window in child_windows:
+                        child_windows.append(child_window)
+                        added=True
+                if added:
+                    done = False
+        if not found is None:
+            break
+    if found is None:
+        raise Exception(f"No window found with the requested id: {win_id}")
+
+    geom = found.get_geometry()._data.copy()
+    geom.pop('root')
+    geom.pop('sequence_number')
+    geom.pop('depth')
+    return geom
+
+def get_region_relative_output_index_of_window(win_id,layout=None,display=None):
+    geom = get_geom_of_win(win_id,display=display)
+    xpos = geom['x'] + geom['width']  / 2
+    ypos = geom['y'] + geom['height'] / 2
+    if layout is None:
+        layout = parse_screen_layout_env_var_v3()
+    region_layout = env_screen_layout_2_region_layout_v3(layout=layout)
+    for i in range(len(region_layout)):
+        if layout2xpos_v2( layout, i ) > xpos:
+            # area at "i" is above xpos
+            # so xpos belongs to i - 1
+            return i-1
+    # xpos belongs to rightmost one
+    return i
+
 def get_connected_output_count_at_env_layout_index(position_index,layout=None,return_x_display=False):
     """
     returns the number of the xrandr list , start is 0.
@@ -225,5 +342,37 @@ def layout2displaynr(layout=None):
         else:
             l.append(x_displays.index(thing['x_server']))
     return l
+
+def get_focus_win(display=None):
+    if display is None:
+        display = parse_display_var_v3()
+    from Xlib.display import Display
+    display = Display(display)
+    focus = display.get_input_focus()
+    wf = focus._data['focus']
+    return wf
+
+def region2global_index(idx,region_xserver_string,layout=None):
+    if layout is None:
+        layout = parse_screen_layout_env_var_v3()
+    j=0
+    for i in range(len(layout)):
+        if layout[i]['x_server'] == region_xserver_string:
+            if idx == j:
+                return i
+            j+=1
+
+def get_current_output_index(layout2displaynrlist = None,layout=None):
+    """
+    """
+    if layout is None:
+        layout = parse_screen_layout_env_var_v3()
+    if layout2displaynrlist is None:
+        layout2displaynrlist = layout2displaynr(layout=layout)
+    display=parse_display_var_v3()
+    wf=get_focus_win(display=display)
+    ri=get_region_relative_output_index_of_window(wf.id,layout=layout,display=display)
+    return region2global_index(ri,display,layout=layout)
+
 
 # vim: set foldmethod=indent foldlevel=0 foldnestmax=1 :
