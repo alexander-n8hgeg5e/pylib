@@ -97,6 +97,9 @@ def set_in(thing, what ,val):
         raise Exception("missing __setattribute__ or __setitem__ in "+thing.__repr__())
 
 def format(d,dict_format):
+    """
+    trusted data only
+    """
     #for k,v in d.items():
     #    if k.find("enable") != -1:
     #        print("k={},type(k)={}, v={},type(v)={}".format(k,type(k),v,type(v)))
