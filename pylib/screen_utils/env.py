@@ -42,7 +42,7 @@ def parse_display_var_v3(val=None):
         d=val
     server,screen = d.split(":")
     if server.strip()=="":
-        if ["hostnameE"] in environ.keys():
+        if "hostnameE" in environ.keys():
             server = environ["hostnamE"]
         else:
             server = gethostname()
