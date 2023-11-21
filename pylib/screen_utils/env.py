@@ -51,6 +51,19 @@ def parse_display_var_v3(val=None):
     screen = f"{float(screen)}"
     return f"{server}:{screen}" 
 
+def parse_display_var_v4(val=None):
+    """
+    Returns host:rest_of_the_variable
+    """
+    if val is None:
+        d=environ['DISPLAY']
+    else:
+        d=val
+    server,thing = d.split(":")
+    server=server.strip()
+    thing=thing.strip()
+    return { 'host' : server, 'thing' : thing } 
+
 def parse_screen_layout_env_var():
     v=environ['screen_layout']
     screens=v.split('##')
